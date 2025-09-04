@@ -26,6 +26,7 @@
     "@types/jest": "^30.0.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
+    "@types/supertest": "^6.0.3",
     "@vitejs/plugin-react": "^5.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -37,5 +38,18 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2"
-  }
+  },
+  "description": "A personal health and productivity tracker with tabbed navigation for weight, workouts, and tasks. Offline-first, mobile-friendly, and privacy-focused.",
+  "main": "eslint.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bigknoxy/pHelper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bigknoxy/pHelper/issues"
+  },
+  "homepage": "https://github.com/bigknoxy/pHelper#readme"
 }
