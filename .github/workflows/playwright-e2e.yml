@@ -40,12 +40,15 @@ jobs:
       - name: Run Prisma migrations
         run: |
           cd server && npx prisma migrate deploy --schema=prisma/schema.prisma
+        env:
+          DATABASE_URL: "postgresql://phelper:phelperpass@localhost:55432/phelperdb"
 
       - name: Start backend server
         run: |
           cd server && npx ts-node-dev --respawn --transpile-only src/server.ts &
         env:
           NODE_ENV: test
+          DATABASE_URL: "postgresql://phelper:phelperpass@localhost:55432/phelperdb"
 
       - name: Build frontend
         run: |
