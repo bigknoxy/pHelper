@@ -48,6 +48,12 @@ A personal health and productivity tracker with tabbed navigation for weight, wo
   npx eslint .
   ```
 
+## Auth & Migration UI
+
+- Run unit tests for auth and migration flows: `npm test`
+- A simple login and register UI is available at `/login` and `/register` when running the client
+- The Data Migration UI lets users export a local backup (JSON) and import local items to the backend with simple conflict detection
+
 ## Usage
 
 - Use the tabs to switch between Dashboard, Weight, Workouts, and Tasks.

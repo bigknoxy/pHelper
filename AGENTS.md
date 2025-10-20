@@ -6,6 +6,7 @@
 - **Build:** `npm run build`
 - **Lint:** `npm run lint` or `npx eslint .`
 - **Test all:** `npm test`
+ - **Test all:** `npm test`
 - **Test single file:** `npx jest src/components/TaskTracker.test.tsx`
 - **Preview build:** `npm run preview`
 
@@ -21,10 +22,12 @@
 - **Data:** Store locally (no backend); use US pounds for weight.
 - **Testing:** Use Jest + Testing Library; test files next to components.
 - **Linting:** ESLint with recommended, React Hooks, TypeScript, and Vite configs.
+ - **Linting:** ESLint with recommended, React Hooks, TypeScript, and Vite configs.
 - **Extending:** Add new trackers in `src/components/`, update `App.tsx` tab list.
 
 ## Design Documents
 - See [design/persistence-postgres.md](design/persistence-postgres.md) for the persistent storage architecture and migration plan.
+ - Auth/UI: There are unit tests for Login/Register and migration utilities. Run `npm test` to execute them.
 
 ---
 
