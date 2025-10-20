@@ -12,6 +12,7 @@ export default function WorkoutLogger() {
   const [duration, setDuration] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  // local storage key kept for backward compatibility; component prefers API when token is present
   const LOCAL_STORAGE_KEY = 'workoutEntries';
 
   useEffect(() => {

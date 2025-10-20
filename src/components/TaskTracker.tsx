@@ -113,10 +113,10 @@ const TaskTracker: React.FC = () => {
                     <input
                       type="checkbox"
                       aria-label={`complete-${task.id}`}
-                      checked={Boolean((task as any).completed)}
+                      checked={Boolean((task as Task).completed)}
                       onChange={() => {
                         // toggle locally for tests/UI reactivity
-                        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !(t as any).completed } : t))
+                        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !(t as Task).completed } : t))
                       }}
                     />
                     <Text ml={2}>{task.title}</Text>

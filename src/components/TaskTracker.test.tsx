@@ -31,7 +31,16 @@ describe("TaskTracker", () => {
       login: jest.fn(),
       register: jest.fn(),
       logout: jest.fn(),
-    } as any;
+    } as unknown as {
+      userId: string
+      token: string
+      loading: boolean
+      error: null | string
+      migrated: boolean
+      login: (...args: any[]) => void
+      register: (...args: any[]) => void
+      logout: () => void
+    };
     return render(
       <AuthContext.Provider value={mockAuth}>
         <ChakraProvider value={defaultSystem}>{ui}</ChakraProvider>

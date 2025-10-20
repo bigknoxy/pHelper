@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { setToken as tokenSet, getToken as tokenGet, clearToken } from '../api/token'
+// keep storage helpers local to this module to satisfy fast-refresh expectation
 import { login as apiLogin, register as apiRegister } from '../api/auth'
 import { addTask } from '../api/tasks'
 import { addWeight } from '../api/weights'
