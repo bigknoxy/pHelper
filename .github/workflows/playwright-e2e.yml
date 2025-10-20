@@ -32,9 +32,14 @@ jobs:
         run: |
           docker compose -f server/docker-compose.yml up -d
 
+      - name: Wait for Postgres
+        run: |
+          # Wait for Postgres on port 55432 (mapped to container 5432)
+          npx wait-on tcp:localhost:55432 --timeout 60000
+
       - name: Run Prisma migrations
         run: |
-          cd server && npx prisma migrate deploy --schema=prisma/schema.prisma || true
+          cd server && npx prisma migrate deploy --schema=prisma/schema.prisma
 
       - name: Start backend server
         run: |
@@ -48,6 +53,7 @@ jobs:
 
       - name: Start frontend preview
         run: |
+          # Wait a short time for backend to begin accepting connections (non-fatal)
           npx wait-on http://localhost:4000/api/health --timeout 30000 || true
           npm run preview -- --port 5173 --strictPort &
 
