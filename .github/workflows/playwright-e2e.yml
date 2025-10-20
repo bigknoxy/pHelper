@@ -48,7 +48,7 @@ jobs:
 
       - name: Start frontend preview
         run: |
-          npx wait-on http://localhost:4000/api/health || true
+          npx wait-on http://localhost:4000/api/health --timeout 30000 || true
           npm run preview &
 
       - name: Wait for services
