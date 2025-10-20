@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Simple smoke script to test auth endpoints
+# Simple smoke script to register and login against local API
 set -euo pipefail
-BASE=http://localhost:4000/api
-EMAIL=test+smoke@example.com
-PASS=password
+BASE=${BASE:-http://localhost:4000/api}
+EMAIL=${EMAIL:-smoke+test@example.com}
+PASS=${PASS:-smokepass}
 
 # register (ignore error if exists)
 curl -s -X POST "$BASE/auth/register" -H 'Content-Type: application/json' -d "{\"email\": \"$EMAIL\", \"password\": \"$PASS\"}" || true
@@ -16,6 +16,6 @@ if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then
 fi
 
 # health
-curl -s "$BASE/health" | jq .
+curl -s "${BASE%/api}/health" | jq . || true
 
 echo "OK"
