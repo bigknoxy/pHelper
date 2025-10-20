@@ -13,7 +13,9 @@ export default function WorkoutLogger() {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   // local storage key kept for backward compatibility; component prefers API when token is present
-  const LOCAL_STORAGE_KEY = 'workoutEntries';
+  // mark as used to satisfy lint (kept for backward compatibility)
+  const LOCAL_STORAGE_KEY = 'workoutEntries'
+  void LOCAL_STORAGE_KEY
 
   useEffect(() => {
     if (!token) return;

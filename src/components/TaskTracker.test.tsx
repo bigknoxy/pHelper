@@ -28,8 +28,9 @@ describe("TaskTracker", () => {
       loading: false,
       error: null,
       migrated: true,
-      login: jest.fn(),
-      register: jest.fn(),
+      // ensure mocked auth functions return Promises to match AuthContextType
+      login: jest.fn(async () => undefined),
+      register: jest.fn(async () => undefined),
       logout: jest.fn(),
     } as unknown as {
       userId: string
@@ -37,8 +38,8 @@ describe("TaskTracker", () => {
       loading: boolean
       error: null | string
       migrated: boolean
-      login: (...args: any[]) => void
-      register: (...args: any[]) => void
+      login: (..._args: unknown[]) => Promise<void>
+      register: (..._args: unknown[]) => Promise<void>
       logout: () => void
     };
     return render(

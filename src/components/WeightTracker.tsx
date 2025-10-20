@@ -3,7 +3,7 @@ import { Box, Button, Heading, Text, Stack } from '@chakra-ui/react';
 import { Input, List } from '@chakra-ui/react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useAuth } from '../context/AuthContext';
-import { getWeights, addWeight, deleteWeight, WeightEntry } from '../api/weights';
+import { getWeights, addWeight, WeightEntry } from '../api/weights';
 
 export default function WeightTracker() {
   const { token } = useAuth();

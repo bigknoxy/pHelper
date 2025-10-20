@@ -12,7 +12,7 @@ describe('WorkoutLogger', () => {
   beforeEach(() => {
     localStorage.clear();
     jest.restoreAllMocks();
-    mockGetWorkouts = jest.spyOn(workoutsApi, 'getWorkouts').mockResolvedValue([] as any);
+    mockGetWorkouts = jest.spyOn(workoutsApi, 'getWorkouts').mockResolvedValue([] as workoutsApi.WorkoutEntry[]);
     mockAddWorkout = jest.spyOn(workoutsApi, 'addWorkout');
   });
 
@@ -24,8 +24,9 @@ describe('WorkoutLogger', () => {
       loading: false,
       error: null,
       migrated: true,
-      login: jest.fn(),
-      register: jest.fn(),
+      // mock async auth functions to match AuthContextType
+      login: jest.fn(async () => undefined),
+      register: jest.fn(async () => undefined),
       logout: jest.fn(),
     } as unknown as {
       userId: string
@@ -33,8 +34,8 @@ describe('WorkoutLogger', () => {
       loading: boolean
       error: null | string
       migrated: boolean
-      login: (...args: any[]) => void
-      register: (...args: any[]) => void
+      login: (...args: unknown[]) => Promise<void>
+      register: (...args: unknown[]) => Promise<void>
       logout: () => void
     };
     return render(
@@ -64,7 +65,7 @@ describe('WorkoutLogger', () => {
       duration: 30,
       notes: 'Morning run',
     };
-    mockAddWorkout.mockResolvedValue(newEntry as any);
+    mockAddWorkout.mockResolvedValue(newEntry as unknown as any);
 
     renderWithProvider(<WorkoutLogger />);
     await waitFor(() => expect(mockGetWorkouts).toHaveBeenCalled());
@@ -94,7 +95,7 @@ describe('WorkoutLogger', () => {
       duration: 45,
       notes: 'Evening ride',
     };
-    mockAddWorkout.mockResolvedValue(newEntry as any);
+    mockAddWorkout.mockResolvedValue(newEntry as unknown as any);
 
     renderWithProvider(<WorkoutLogger />);
     await waitFor(() => expect(mockGetWorkouts).toHaveBeenCalled());

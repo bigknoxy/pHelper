@@ -1,11 +1,11 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { setToken as tokenSet, getToken as tokenGet, clearToken } from '../api/token'
-// keep storage helpers local to this module to satisfy fast-refresh expectation
 import { login as apiLogin, register as apiRegister } from '../api/auth'
 import { addTask } from '../api/tasks'
 import { addWeight } from '../api/weights'
 import { addWorkout } from '../api/workouts'
-import { safeGet, safeSet, safeRemove } from '../utils/storage'
+import { safeGet, safeSet } from '../utils/storage'
 
 interface AuthState {
   userId: string | null
@@ -22,7 +22,6 @@ interface AuthContextType extends AuthState {
   logout: () => void
 }
 
-// Use undefined as default so useAuth can throw when used outside provider
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 function getLocalData() {
@@ -40,15 +39,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [migrated, setMigrated] = useState<boolean>(safeGet('migrationComplete') === 'true')
 
   useEffect(() => {
-    // Initialize token from token helper (which may read from memory or localStorage)
     try {
       const t = tokenGet()
       if (t) {
         setTokenState(t)
-        // For now we don't decode userId from token; set a placeholder
         setUserId('me')
       }
-    } catch (_e) {
+    } catch {
       // ignore
     }
   }, [])
@@ -68,7 +65,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       safeSet('migrationComplete', 'true')
       setMigrated(true)
-    } catch (e) {
+    } catch (err) {
+      void err
       setError('Migration failed')
     } finally {
       setLoading(false)
@@ -79,23 +77,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
     try {
-      const res: any = await apiLogin(email, password)
-      const jwt = res.token
-      // persist token according to remember flag
+      const res = await apiLogin(email, password)
+      const jwt = (res as any)?.token
       tokenSet(jwt, remember)
       setTokenState(jwt)
       setUserId('me')
-      // Prompt for migration if needed
       if (!safeGet('migrationComplete')) {
-        // Use a modal in the future; for now keep the confirmation but ensure token is set before migrating
         if (window.confirm('Import your local data to the backend?')) {
           await migrateLocalData()
         }
       }
-    } catch (e: any) {
-      setError(e?.response?.data?.error || 'Login failed')
-      // rethrow so callers can react if they want
-      throw e
+    } catch (err: unknown) {
+      let message = 'Login failed'
+      if (typeof err === 'object' && err !== null) {
+        const maybe = err as { response?: { data?: { error?: string } } }
+        message = maybe.response?.data?.error || message
+      }
+      setError(message)
+      throw err
     } finally {
       setLoading(false)
     }
@@ -105,8 +104,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true)
     setError(null)
     try {
-      const res: any = await apiRegister(email, password)
-      const jwt = res.token
+      const res = await apiRegister(email, password)
+      const jwt = (res as any)?.token
       tokenSet(jwt, remember)
       setTokenState(jwt)
       setUserId('me')
@@ -115,9 +114,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await migrateLocalData()
         }
       }
-    } catch (e: any) {
-      setError(e?.response?.data?.error || 'Registration failed')
-      throw e
+    } catch (err: unknown) {
+      let message = 'Registration failed'
+      if (typeof err === 'object' && err !== null) {
+        const maybe = err as { response?: { data?: { error?: string } } }
+        message = maybe.response?.data?.error || message
+      }
+      setError(message)
+      throw err
     } finally {
       setLoading(false)
     }
@@ -125,10 +129,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function logout() {
     try {
-      // clear both memory and persisted token
       tokenSet(null, false)
       clearToken()
-    } catch (e) {
+    } catch {
       // ignore
     }
     setTokenState(null)
