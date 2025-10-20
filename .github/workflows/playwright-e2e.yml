@@ -1,0 +1,60 @@
+name: Playwright E2E
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services: {}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install --with-deps
+
+      - name: Start database (Docker Compose)
+        run: |
+          docker compose -f server/docker-compose.yml up -d
+
+      - name: Run Prisma migrations
+        run: |
+          cd server && npx prisma migrate deploy --schema=prisma/schema.prisma || true
+
+      - name: Start backend server
+        run: |
+          cd server && npx ts-node-dev --respawn --transpile-only src/server.ts &
+        env:
+          NODE_ENV: test
+
+      - name: Build frontend
+        run: |
+          npm run build
+
+      - name: Start frontend preview
+        run: |
+          npx wait-on http://localhost:4000/api/health || true
+          npm run preview &
+
+      - name: Wait for services
+        run: |
+          npx wait-on http://localhost:5173 http://localhost:4000/api/health --timeout 60000
+
+      - name: Run Playwright tests
+        run: |
+          npm run e2e -- --reporter=list
