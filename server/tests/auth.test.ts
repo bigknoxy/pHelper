@@ -1,5 +1,12 @@
+
 import request from 'supertest'
 import app from '../src/app'
+
+// Polyfill TextEncoder for Node.js 18+ test environment
+const { TextEncoder } = require('util');
+if (typeof global.TextEncoder === 'undefined') {
+  global.TextEncoder = TextEncoder;
+}
 
 describe('Auth endpoints', () => {
   const testEmail = `user${Date.now()}@test.com`

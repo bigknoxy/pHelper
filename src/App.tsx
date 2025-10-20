@@ -1,4 +1,4 @@
-import { Container, Box } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { useState } from 'react';
 import { Flex } from '@chakra-ui/react';
 import WeightTracker from './components/WeightTracker';

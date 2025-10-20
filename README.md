@@ -61,6 +61,56 @@ A personal health and productivity tracker with tabbed navigation for weight, wo
 - To add a new tracker, see `.github/copilot-instructions.md`.
 - Key files: `src/App.tsx`, `vite.config.ts`, `eslint.config.js`, `jest.config.js`.
 
+## Backend & Database Setup
+
+### Start/Stop PostgreSQL (Docker)
+```sh
+cd server
+docker compose up -d
+```
+To stop:
+```sh
+docker compose down
+```
+Data is persisted in the Docker volume `pgdata`.
+
+### Prisma Migrations
+Set environment variables in `server/.env`:
+```
+DATABASE_URL="postgresql://phelper:phelperpass@localhost:55432/phelperdb"
+JWT_SECRET="your_jwt_secret"
+```
+Run migrations:
+```sh
+cd server
+export DATABASE_URL="postgresql://phelper:phelperpass@localhost:55432/phelperdb"
+npx prisma migrate dev --schema=prisma/schema.prisma
+```
+
+### Seeding the Database
+To seed test data:
+```sh
+npx prisma db seed
+```
+(See `server/prisma/seed.ts` for details.)
+
+### API Endpoints
+- Auth: `/api/auth/register`, `/api/auth/login`
+- Trackers: `/api/weights`, `/api/workouts`, `/api/tasks`
+
+### Backup/Restore
+Backup DB volume:
+```sh
+docker run --rm -v pHelper_pgdata:/var/lib/postgresql/data -v $(pwd):/backup busybox tar czvf /backup/pgdata-backup.tar.gz /var/lib/postgresql/data
+```
+Restore:
+```sh
+docker run --rm -v pHelper_pgdata:/var/lib/postgresql/data -v $(pwd):/backup busybox tar xzvf /backup/pgdata-backup.tar.gz -C /
+```
+
+### API Documentation
+See `server/src/utils/swagger.ts` for Swagger/OpenAPI spec.
+
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
