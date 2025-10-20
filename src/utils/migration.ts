@@ -14,6 +14,6 @@ export function backupData() {
 }
 
 export function detectConflicts(itemsA: Array<Record<string, unknown>>, itemsB: Array<Record<string, unknown>>, key: string) {
-  const set = new Set(itemsB.map(i => (i as any)[key]))
-  return itemsA.filter(i => set.has((i as any)[key]))
+  const set = new Set(itemsB.map(i => (i as Record<string, unknown>)[key]))
+  return itemsA.filter(i => set.has((i as Record<string, unknown>)[key]))
 }

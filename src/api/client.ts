@@ -26,7 +26,12 @@ client.interceptors.response.use(
   err => {
     // Optionally handle errors globally
     if (err.response?.status === 401) {
-      // e.g. redirect to login
+      // clear token on unauthorized
+      try {
+        clearToken()
+      } catch (e) {
+        void e
+      }
     }
     return Promise.reject(err)
   }
