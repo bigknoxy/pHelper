@@ -6,6 +6,8 @@ export interface Task {
   description?: string;
   status?: string;
   dueDate?: string;
+  // UI-only flag for completion state in frontend components
+  completed?: boolean;
 }
 
 export async function getTasks(): Promise<Task[]> {

@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
     try {
       const res = await apiLogin(email, password)
-      const jwt = (res as any)?.token
+      const jwt = (res as { token?: string })?.token
       tokenSet(jwt, remember)
       setTokenState(jwt)
       setUserId('me')
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
     try {
       const res = await apiRegister(email, password)
-      const jwt = (res as any)?.token
+      const jwt = (res as { token?: string })?.token
       tokenSet(jwt, remember)
       setTokenState(jwt)
       setUserId('me')

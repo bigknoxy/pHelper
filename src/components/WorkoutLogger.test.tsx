@@ -65,7 +65,7 @@ describe('WorkoutLogger', () => {
       duration: 30,
       notes: 'Morning run',
     };
-    mockAddWorkout.mockResolvedValue(newEntry as unknown as any);
+    mockAddWorkout.mockResolvedValue(newEntry as unknown as workoutsApi.WorkoutEntry);
 
     renderWithProvider(<WorkoutLogger />);
     await waitFor(() => expect(mockGetWorkouts).toHaveBeenCalled());
@@ -95,7 +95,7 @@ describe('WorkoutLogger', () => {
       duration: 45,
       notes: 'Evening ride',
     };
-    mockAddWorkout.mockResolvedValue(newEntry as unknown as any);
+    mockAddWorkout.mockResolvedValue(newEntry as unknown as workoutsApi.WorkoutEntry);
 
     renderWithProvider(<WorkoutLogger />);
     await waitFor(() => expect(mockGetWorkouts).toHaveBeenCalled());
