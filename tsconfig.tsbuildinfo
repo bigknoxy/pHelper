@@ -1,1 +1,0 @@
-{"root":["./src/App.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/Dashboard.tsx","./src/components/MvpTabs.tsx","./src/components/TaskTracker.test.tsx","./src/components/TaskTracker.tsx","./src/components/WeightTracker.tsx","./src/components/WorkoutLogger.test.tsx","./src/components/WorkoutLogger.tsx"],"version":"5.8.3"}

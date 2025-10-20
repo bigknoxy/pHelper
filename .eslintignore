@@ -1,0 +1,6 @@
+server/
+.specify/
+.opencode/
+design/
+e2e/
+scripts/

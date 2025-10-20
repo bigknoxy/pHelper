@@ -1,10 +1,13 @@
-import { Container, Box } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { useState } from 'react';
 import { Flex } from '@chakra-ui/react';
 import WeightTracker from './components/WeightTracker';
 import WorkoutLogger from './components/WorkoutLogger';
 import TaskTracker from './components/TaskTracker';
 import Dashboard from './components/Dashboard';
+import TopBarAuth from './components/TopBarAuth';
+import LoginForm from './components/Auth/LoginForm';
+import RegisterForm from './components/Auth/RegisterForm';
 import './App.css';
 
 function App() {
@@ -16,8 +19,26 @@ function App() {
   ];
   const [selected, setSelected] = useState("dashboard");
 
+  // Simple client-side routing for /login and /register when not using react-router
+  const path = typeof window !== 'undefined' ? window.location.pathname : '/'
+
+  if (path === '/login') return (
+    <Box p={4}>
+      <TopBarAuth />
+      <LoginForm />
+    </Box>
+  )
+
+  if (path === '/register') return (
+    <Box p={4}>
+      <TopBarAuth />
+      <RegisterForm />
+    </Box>
+  )
+
   return (
     <Box bg="#18181b" minH="100vh" color="white">
+      <TopBarAuth />
       <Flex
         as="nav"
         gap={4}

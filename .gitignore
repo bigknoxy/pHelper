@@ -82,3 +82,8 @@ __MACOSX/
 # Optional lock files
 package-lock.json
 yarn.lock
+-e 
+# Generated artifacts
+/playwright-report/
+/test-results/
+tsconfig.tsbuildinfo

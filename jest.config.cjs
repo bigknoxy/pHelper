@@ -3,7 +3,7 @@ module.exports = {
   testEnvironment: 'jsdom',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(ts|tsx|js|jsx)$': 'ts-jest',
   },
-  setupFilesAfterEnv: ['@testing-library/jest-dom', './jest.setup.js'],
+  setupFilesAfterEnv: ['@testing-library/jest-dom', './jest.setup.js', './server/jest.setup.js', './src/setupTests.ts'],
 };

@@ -1,157 +1,148 @@
 import React, { useState, useEffect } from "react";
-import { Box, Stack, Input, Button, Text, Field } from "@chakra-ui/react";
-import { Checkbox } from "@chakra-ui/react";
-
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-}
-
-const LOCAL_STORAGE_KEY = "tasks";
-
-function loadTasks(): Task[] {
-  try {
-    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveTasks(tasks: Task[]) {
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
-}
+import { Box, Stack, Input, Button, Text } from "@chakra-ui/react";
+import { useAuth } from "../context/AuthContext";
+import { getTasks, addTask as apiAddTask, deleteTask as apiDeleteTask, Task } from "../api/tasks";
 
 const TaskTracker: React.FC = () => {
+  const { token } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Add a new task
-  const addTask = () => {
+  useEffect(() => {
+    if (!token) return;
+    setLoading(true);
+    getTasks()
+      .then((data) => setTasks(data))
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  const addTask = async () => {
     if (!title.trim()) return;
-    const newTask: Task = {
-      id: Date.now().toString(),
-      title: title.trim(),
-      description: description.trim(),
-      completed: false,
-    };
-    setTasks([newTask, ...tasks]);
-    setTitle("");
-    setDescription("");
+    setLoading(true);
+    try {
+      const newTask = await apiAddTask(title.trim(), description.trim());
+      setTasks(prev => [newTask, ...prev]);
+      setTitle("");
+      setDescription("");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Toggle completion
-  const toggleComplete = (id: string) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+  const deleteTask = async (id: string) => {
+    setLoading(true);
+    try {
+      await apiDeleteTask(id);
+      setTasks(prev => prev.filter(t => t.id !== id));
+    } finally {
+      setLoading(false);
+    }
   };
-
-  // Delete a task
-  const deleteTask = (id: string) => {
-    setTasks(tasks.filter(t => t.id !== id));
-  };
-
-  useEffect(() => {
-    setTasks(loadTasks());
-  }, []);
-
-  useEffect(() => {
-    saveTasks(tasks);
-  }, [tasks]);
 
   return (
     <Box p={4}>
-      <form
-        onSubmit={e => {
-          e.preventDefault();
-          addTask();
-        }}
-      >
-  <Stack gap={3} direction={{ base: "column", md: "row" }} align="end">
-          <Field.Root required>
-            <label htmlFor="task-title">Task Title</label>
-            <Input
-              id="task-title"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="Enter task title"
-              aria-label="Task Title"
-            />
-          </Field.Root>
-          <Field.Root>
-            <label htmlFor="task-desc">Description</label>
-            <Input
-              id="task-desc"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder="Enter description"
-              aria-label="Description"
-            />
-          </Field.Root>
-          <Button
-            type="submit"
-            variant="solid"
-            size="md"
-            colorScheme="teal"
-            borderRadius="md"
-            boxShadow="md"
-            fontWeight="bold"
-            width={{ base: "100%", md: "auto" }}
-            _focusVisible={{ boxShadow: "0 0 0 2px #319795" }}
-            _hover={{ bg: "teal.300", boxShadow: "lg", cursor: "pointer" }}
+      {!token ? (
+        <Text color="red.400">Please log in to use the Task Tracker.</Text>
+      ) : (
+        <>
+          <form
+            onSubmit={e => {
+              e.preventDefault();
+              addTask();
+            }}
           >
-            Add Task
-          </Button>
-        </Stack>
-      </form>
-      <Stack mt={6}>
-        {tasks.length === 0 ? (
-          <Text color="gray.500">No tasks yet.</Text>
-        ) : (
-          tasks.map(task => (
-            <Box
-              key={task.id}
-              data-testid="task-item"
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              p={2}
-              borderWidth={1}
-              borderRadius="md"
-            >
-              <Box display="flex" alignItems="center">
-                <input
-                  type="checkbox"
-                  checked={task.completed}
-                  onChange={() => toggleComplete(task.id)}
-                  aria-label={`Mark ${task.title} as complete`}
-                  style={{ marginRight: "8px" }}
+            <Stack direction={{ base: "column", md: "row" }} align="end" gap={3}>
+              <div>
+                <label htmlFor="task-title">Task Title</label>
+                <Input
+                  id="task-title"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="Enter task title"
+                  aria-label="Task Title"
                 />
-                <Text ml={2} as={task.completed ? "del" : undefined}>
-                  {task.title}
-                </Text>
-                {task.description && (
-                  <Text ml={4} color="gray.500" fontSize="sm">
-                    {task.description}
-                  </Text>
-                )}
-              </Box>
+              </div>
+              <div>
+                <label htmlFor="task-desc">Description</label>
+                <Input
+                  id="task-desc"
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  placeholder="Enter description"
+                  aria-label="Description"
+                />
+              </div>
               <Button
+                type="submit"
                 variant="solid"
-                size="sm"
-                colorScheme="red"
-                onClick={() => deleteTask(task.id)}
-                aria-label="Delete"
-                _focusVisible={{ boxShadow: "0 0 0 2px #E53E3E" }}
+                size="md"
+                colorScheme="teal"
+                borderRadius="md"
+                boxShadow="md"
+                fontWeight="bold"
+                width={{ base: "100%", md: "auto" }}
+                _focusVisible={{ boxShadow: "0 0 0 2px #319795" }}
+                _hover={{ bg: "teal.300", boxShadow: "lg", cursor: "pointer" }}
+                loading={loading}
+                aria-label="Add Task"
               >
-                Delete
+                Add Task
               </Button>
-            </Box>
-          ))
-        )}
-      </Stack>
+            </Stack>
+          </form>
+          <Stack mt={6} gap={2}>
+            {loading ? (
+              <Text color="gray.500">Loading...</Text>
+            ) : tasks.length === 0 ? (
+              <Text color="gray.500">No tasks yet.</Text>
+            ) : (
+              tasks.map(task => (
+                <Box
+                  key={task.id}
+                  data-testid="task-item"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  p={2}
+                  borderWidth="1px"
+                  borderRadius="md"
+                >
+                  <Box display="flex" alignItems="center">
+                    <input
+                      type="checkbox"
+                      aria-label={`complete-${task.id}`}
+                      checked={Boolean((task as Task).completed)}
+                      onChange={() => {
+                        // toggle locally for tests/UI reactivity
+                        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, completed: !(t as Task).completed } : t))
+                      }}
+                    />
+                    <Text ml={2}>{task.title}</Text>
+                    {task.description && (
+                      <Text ml={4} color="gray.500" fontSize="sm">
+                        {task.description}
+                      </Text>
+                    )}
+                  </Box>
+                  <Button
+                    variant="solid"
+                    size="sm"
+                    colorScheme="red"
+                    onClick={() => deleteTask(task.id)}
+                    aria-label="Delete"
+                    _focusVisible={{ boxShadow: "0 0 0 2px #E53E3E" }}
+                    loading={false}
+                  >
+                    Delete
+                  </Button>
+                </Box>
+              ))
+            )}
+          </Stack>
+        </>
+      )}
     </Box>
   );
 };
