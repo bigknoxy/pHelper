@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { setToken as tokenSet, getToken as tokenGet, clearToken, isRemembered } from '../api/token'
+import { setToken as tokenSet, getToken as tokenGet, clearToken } from '../api/token'
 import { login as apiLogin, register as apiRegister } from '../api/auth'
 import { addTask } from '../api/tasks'
 import { addWeight } from '../api/weights'

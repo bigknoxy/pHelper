@@ -21,3 +21,5 @@ export function safeRemove(key: string): void {
     // ignore
   }
 }
+
+// exported low-level wrappers are intentionally minimal and use '_' for unused error variable
