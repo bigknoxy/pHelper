@@ -26,7 +26,9 @@ jobs:
 
       - name: Install server dependencies
         run: |
-          cd server && npm ci
+          # If server has a package-lock.json prefer npm ci; otherwise fall back to npm install.
+          # This avoids failure when lockfile is missing on the runner.
+          cd server && if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --prefer-offline --no-fund; fi
 
       - name: Install Playwright browsers
         run: |
