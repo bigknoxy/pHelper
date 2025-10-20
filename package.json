@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev:db": "cd server && docker compose up -d",
-    "dev:server": "cd server && npm install && npx prisma migrate dev --schema=prisma/schema.prisma || true && npx ts-node-dev --respawn --transpile-only src/server.ts",
-    "dev:client": "npm install && vite",
+    "dev:server": "cd server && npx prisma migrate dev --schema=prisma/schema.prisma || true && npx ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev:client": "vite",
     "dev": "concurrently \"npm run dev:db\" \"wait-on tcp:55432 && npm run dev:server\" \"wait-on http://localhost:4000/api/health && npm run dev:client\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
