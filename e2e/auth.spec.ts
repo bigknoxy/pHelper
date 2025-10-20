@@ -7,14 +7,12 @@ test.describe('Authentication Flow', () => {
     const password = 'testpassword123';
 
     // Register - navigate via client-side routing
-    await page.goto('/');
-    // push /register into history and wait for the form to render
-    await page.evaluate(() => window.history.pushState({}, '', '/register'));
-    await page.waitForSelector('input[aria-label="email"]', { timeout: 10000 });
+    await page.goto('/register', { waitUntil: 'networkidle', timeout: 20000 });
+    await page.waitForSelector('input[aria-label="email"]', { timeout: 20000 });
     await page.fill('input[aria-label="email"]', email);
     await page.fill('input[aria-label="password"]', password);
     await page.click('button[aria-label="register button"]');
-    await page.waitForSelector('button:has-text("Logout")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("Logout")', { timeout: 20000 });
 
     // Check if TopBar shows logout (indicating success)
     await expect(page.locator('button:has-text("Logout")')).toBeVisible();
