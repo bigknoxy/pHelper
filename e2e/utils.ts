@@ -8,7 +8,7 @@ export async function waitForHealth(request: APIRequestContext, timeout = 120000
     try {
       const res = await request.get(healthUrl)
       if (res && res.status() === 200) return
-    } catch (e) {
+    } catch {
       // ignore network errors while server is starting
     }
     await new Promise((r) => setTimeout(r, 500))
@@ -23,7 +23,7 @@ export async function waitForFrontend(request: APIRequestContext, timeout = 3000
     try {
       const res = await request.get(frontend)
       if (res && res.status() === 200) return
-    } catch (e) {
+    } catch {
       // ignore while frontend starts
     }
     await new Promise((r) => setTimeout(r, 500))

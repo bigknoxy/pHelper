@@ -3,6 +3,7 @@ import WorkoutLogger from './WorkoutLogger';
 import '@testing-library/jest-dom';
 import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 import { AuthContext } from '../context/AuthContext';
+import { QueryClientWrapper } from '../test-utils/queryClient';
 import * as workoutsApi from '../api/workouts';
 
 describe('WorkoutLogger', () => {
@@ -39,9 +40,11 @@ describe('WorkoutLogger', () => {
       logout: () => void
     };
     return render(
-      <AuthContext.Provider value={mockAuth}>
-        <ChakraProvider value={defaultSystem}>{ui}</ChakraProvider>
-      </AuthContext.Provider>
+      <QueryClientWrapper>
+        <AuthContext.Provider value={mockAuth}>
+          <ChakraProvider value={defaultSystem}>{ui}</ChakraProvider>
+        </AuthContext.Provider>
+      </QueryClientWrapper>
     );
   }
 

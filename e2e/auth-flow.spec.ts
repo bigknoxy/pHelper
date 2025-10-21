@@ -21,8 +21,8 @@ test.describe('Authentication Flow (default login)', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.evaluate(() => {
       // stub confirm in the browser context
-      // eslint-disable-next-line no-global-assign
-      // @ts-ignore
+       
+      // @ts-expect-error - running in browser page context
       window.confirm = () => false;
       try { localStorage.setItem('migrationComplete', 'true') } catch { /* ignore */ }
     });
@@ -50,13 +50,14 @@ test.describe('Authentication Flow (default login)', () => {
     // Navigate to register directly
     await page.goto('/register', { waitUntil: 'networkidle' });
     await page.waitForSelector('form[aria-label="register-form"]', { timeout: 60000 });
-    await page.fill('input[aria-label="email"]', email);
-    await page.fill('input[aria-label="password"]', password);
+     await page.fill('input[aria-label="email"]', email);
+     await page.fill('input[aria-label="password"]', password);
+     await page.fill('input[aria-label="confirm password"]', password);
 
-    await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/auth/register') && resp.status() === 200, { timeout: 60000 }),
-      page.click('button[aria-label="register button"], button:has-text("Create account"), button:has-text("Create account")')
-    ]);
+     await Promise.all([
+       page.waitForResponse(resp => resp.url().includes('/api/auth/register') && resp.status() === 200, { timeout: 60000 }),
+       page.click('button[aria-label="register button"], button:has-text("Create account")')
+     ]);
     await page.waitForSelector('button:has-text("Logout")', { timeout: 60000 });
 
     // Logout should return to login form

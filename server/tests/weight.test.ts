@@ -1,9 +1,9 @@
 import request from 'supertest'
 import app from '../src/app'
 
-const { TextEncoder } = require('util');
+import { TextEncoder } from 'util'
 if (typeof global.TextEncoder === 'undefined') {
-  global.TextEncoder = TextEncoder;
+  global.TextEncoder = TextEncoder
 }
 
 describe('Weight endpoints', () => {

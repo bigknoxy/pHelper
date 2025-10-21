@@ -23,12 +23,9 @@ test.describe('Authentication Flow', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.evaluate(() => {
       // stub window.confirm used by migration prompt
-      // eslint-disable-next-line no-global-assign
-      // @ts-ignore
-      // @ts-ignore
-      // In the browser context plain window.confirm works
-      // @ts-ignore
-      (window as any).confirm = () => false;
+       
+      // In the browser context plain window.confirm works. Use safer cast to avoid `any`.
+      (window as unknown as { confirm: () => boolean }).confirm = () => false;
       try {
         localStorage.setItem('migrationComplete', 'true');
       } catch {
@@ -46,14 +43,15 @@ test.describe('Authentication Flow', () => {
     const bodyHtml = await page.evaluate(() => document.body.innerHTML);
     console.log('BODY HTML (preview):', bodyHtml.slice(0, 2000));
     await page.waitForSelector('form[aria-label="register-form"]', { timeout: 60000 });
-    await page.fill('input[aria-label="email"]', email);
-    await page.fill('input[aria-label="password"]', password);
-    // Wait for the register network response and assert token presence
-    await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/auth/register') && resp.status() === 200, { timeout: 60000 }),
-      // match by aria-label or visible text as a fallback
-      page.click('button[aria-label="register button"], button:has-text("Create account")'),
-    ])
+     await page.fill('input[aria-label="email"]', email);
+     await page.fill('input[aria-label="password"]', password);
+     await page.fill('input[aria-label="confirm password"]', password);
+     // Wait for the register network response and assert token presence
+     await Promise.all([
+       page.waitForResponse(resp => resp.url().includes('/api/auth/register') && resp.status() === 200, { timeout: 60000 }),
+       // match by aria-label or visible text as a fallback
+       page.click('button[aria-label="register button"], button:has-text("Create account")'),
+     ])
 
 
     // Check if TopBar shows logout (indicating success)
