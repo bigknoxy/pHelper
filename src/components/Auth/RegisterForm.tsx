@@ -10,6 +10,7 @@ import {
   Heading,
   HStack,
   Spinner,
+  useToken,
 } from '@chakra-ui/react'
 
 interface FormErrors {
@@ -18,9 +19,6 @@ interface FormErrors {
   confirm?: string
 }
 
-/**
- * Validate an email value. Returns an error string or null when valid.
- */
 function validateEmail(value: string): string | null {
   const v = value.trim()
   if (!v) return 'Email is required'
@@ -29,19 +27,12 @@ function validateEmail(value: string): string | null {
   return null
 }
 
-/**
- * Validate a password value with minimum constraints.
- */
 function validatePassword(value: string): string | null {
   if (!value) return 'Password is required'
   if (value.length < 8) return 'Password must be at least 8 characters'
   return null
 }
 
-/**
- * Compute password strength and criteria.
- * Returns score 0-4 and booleans for criteria to show realtime feedback.
- */
 function passwordStrength(pwd: string): { score: number; label: string; criteria: Record<string, boolean> } {
   const criteria = {
     length: pwd.length >= 8,
@@ -58,11 +49,6 @@ function passwordStrength(pwd: string): { score: number; label: string; criteria
   return { score, label, criteria }
 }
 
-/**
- * RegisterForm
- * Enhanced register form with realtime validation, password strength indicator,
- * confirm password, accessible attributes, and improved error handling.
- */
 export default function RegisterForm(): React.ReactElement {
   const { register } = useAuth()
   const [email, setEmail] = useState('')
@@ -78,12 +64,13 @@ export default function RegisterForm(): React.ReactElement {
     emailRef.current?.focus()
   }, [])
 
-  // realtime strength and criteria
+  // resolve tokens used in inline focus/boxShadow where concrete hex is required
+  const [primary500Hex] = useToken('colors', ['primary.500'])
+
   const { score, label, criteria } = passwordStrength(password)
 
   function handleEmailChange(value: string) {
     setEmail(value)
-    // live validation but only show when user typed something
     if (value.length === 0) {
       setFieldErrors(prev => ({ ...prev, email: 'Email is required' }))
     } else {
@@ -94,10 +81,8 @@ export default function RegisterForm(): React.ReactElement {
 
   function handlePasswordChange(value: string) {
     setPassword(value)
-    // live validation
     const v = validatePassword(value)
     setFieldErrors(prev => ({ ...prev, password: v || undefined }))
-    // confirm mismatch check while typing
     if (confirm && value !== confirm) {
       setFieldErrors(prev => ({ ...prev, confirm: 'Passwords do not match' }))
     } else {
@@ -136,7 +121,6 @@ export default function RegisterForm(): React.ReactElement {
       await register(email, password, true)
     } catch (err) {
       const ex = err as Error
-      // map common errors to user-friendly messages
       const msg = ex?.message?.toLowerCase() || ''
       if (msg.includes('already') || msg.includes('exists')) {
         setError('An account with this email already exists.')
@@ -153,7 +137,7 @@ export default function RegisterForm(): React.ReactElement {
   return (
     <Box
       minH="100vh"
-      bg="#18181b"
+      bg="background.900"
       display="flex"
       alignItems="center"
       justifyContent="center"
@@ -162,7 +146,7 @@ export default function RegisterForm(): React.ReactElement {
       <Box
         w="full"
         maxW={{ base: 'sm', sm: 'md' }}
-        bg="#23232a"
+        bg="surface.900"
         rounded="xl"
         shadow="xl"
         p={{ base: 6, sm: 8 }}
@@ -175,7 +159,6 @@ export default function RegisterForm(): React.ReactElement {
             <Text color="gray.400" fontSize={{ base: 'xs', sm: 'sm' }}>Sign up to start tracking your fitness journey</Text>
           </Stack>
 
-          {/* Security trust indicator */}
           <HStack gap={2} justify="center">
             <Text color="green.400" fontSize="xs" aria-hidden>🔒</Text>
             <Text color="gray.400" fontSize="xs">Secure, encrypted connection</Text>
@@ -200,11 +183,11 @@ export default function RegisterForm(): React.ReactElement {
                   type="email"
                   value={email}
                   onChange={e => handleEmailChange(e.target.value)}
-                  bg="#18181b"
+                  bg="background.900"
                   border="1px solid"
                   borderColor={fieldErrors.email ? 'red.500' : 'gray.600'}
                   color="white"
-                  _focus={{ borderColor: '#0bc5ea', boxShadow: '0 0 0 1px #0bc5ea' }}
+                  _focus={{ borderColor: primary500Hex, boxShadow: `0 0 0 1px ${primary500Hex}` }}
                   placeholder="Enter your email"
                   aria-label="email"
                   aria-describedby={fieldErrors.email ? 'reg-email-error' : undefined}
@@ -224,11 +207,11 @@ export default function RegisterForm(): React.ReactElement {
                   type="password"
                   value={password}
                   onChange={e => handlePasswordChange(e.target.value)}
-                  bg="#18181b"
+                  bg="background.900"
                   border="1px solid"
                   borderColor={fieldErrors.password ? 'red.500' : 'gray.600'}
                   color="white"
-                  _focus={{ borderColor: '#0bc5ea', boxShadow: '0 0 0 1px #0bc5ea' }}
+                  _focus={{ borderColor: primary500Hex, boxShadow: `0 0 0 1px ${primary500Hex}` }}
                   placeholder="Create a password"
                   aria-label="password"
                   aria-describedby={fieldErrors.password ? 'reg-password-error' : 'password-strength'}
@@ -238,12 +221,11 @@ export default function RegisterForm(): React.ReactElement {
                 />
                 {fieldErrors.password && <Text id="reg-password-error" color="red.400" fontSize="xs" mt={1}>{fieldErrors.password}</Text>}
 
-                {/* Strength bar */}
                 <Box mt={2} aria-live="polite" id="password-strength">
                   <Box height="8px" bg="gray.700" borderRadius="sm" overflow="hidden">
                     <Box
                       height="8px"
-                      bg={score <= 1 ? 'red.500' : score === 2 ? 'yellow.400' : score === 3 ? '#0bc5ea' : '#38b2ac'}
+                      bg={score <= 1 ? 'red.500' : score === 2 ? 'yellow.400' : score === 3 ? 'primary.500' : 'success.500'}
                       width={`${(score / 4) * 100}%`}
                       transition="width 150ms ease"
                     />
@@ -253,7 +235,6 @@ export default function RegisterForm(): React.ReactElement {
                     <Text fontSize="xs" color="gray.500">{password.length} chars</Text>
                   </HStack>
 
-                  {/* Criteria */}
                   <Stack gap={1} align="start" mt={2}>
                     <HStack>
                       <Text aria-hidden color={criteria.length ? 'green.400' : 'red.400'}>{criteria.length ? '✓' : '✕'}</Text>
@@ -284,11 +265,11 @@ export default function RegisterForm(): React.ReactElement {
                   type="password"
                   value={confirm}
                   onChange={e => handleConfirmChange(e.target.value)}
-                  bg="#18181b"
+                  bg="background.900"
                   border="1px solid"
                   borderColor={fieldErrors.confirm ? 'red.500' : 'gray.600'}
                   color="white"
-                  _focus={{ borderColor: '#0bc5ea', boxShadow: '0 0 0 1px #0bc5ea' }}
+                  _focus={{ borderColor: primary500Hex, boxShadow: `0 0 0 1px ${primary500Hex}` }}
                   placeholder="Confirm your password"
                   aria-label="confirm password"
                   aria-describedby={fieldErrors.confirm ? 'reg-confirm-error' : undefined}
@@ -302,17 +283,18 @@ export default function RegisterForm(): React.ReactElement {
               <Button
                 type="submit"
                 w="full"
-                bg="#0bc5ea"
+                bg={primary500Hex}
                 color="white"
                 fontWeight="semibold"
                 py={3}
                 borderRadius="md"
-                _hover={{ bg: '#0dd5fa', transform: 'translateY(-1px)', boxShadow: '0 4px 12px rgba(11, 197, 234, 0.3)' }}
+                _hover={{ bg: 'accent.500', transform: 'translateY(-1px)', boxShadow: `0 4px 12px ${primary500Hex}33` }}
                 transition="all 0.15s"
                 loading={loading}
                 loadingText="Creating account..."
                 disabled={loading}
                 aria-live="polite"
+                aria-label="register button"
               >
                 {loading ? (
                   <>
@@ -327,7 +309,7 @@ export default function RegisterForm(): React.ReactElement {
 
           <HStack justify="center">
             <Text color="gray.400" fontSize="sm">Already have an account?</Text>
-            <Link color="#0bc5ea" fontSize="sm" fontWeight="medium" href="/login" _hover={{ color: '#0dd5fa', textDecoration: 'underline' }}>Login</Link>
+            <Link color="primary.500" fontSize="sm" fontWeight="medium" href="/login" _hover={{ color: 'accent.500', textDecoration: 'underline' }}>Login</Link>
           </HStack>
         </Stack>
       </Box>

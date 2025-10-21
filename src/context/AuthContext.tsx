@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { setToken as tokenSet, getToken as tokenGet, clearToken } from '../api/token'
 import { login as apiLogin, register as apiRegister } from '../api/auth'
 import { addTask } from '../api/tasks'
@@ -86,9 +86,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       tokenSet(jwt, remember)
       setTokenState(jwt)
       setUserId('me')
-      // redirect to dashboard after successful login so the app shows main UI
+      // Only redirect if remember=true to avoid losing in-memory token on page reload
+      // When remember=false, let React state update naturally
       try {
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && remember) {
           window.location.href = '/'
         }
       } catch {
@@ -121,9 +122,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       tokenSet(jwt, remember)
       setTokenState(jwt)
       setUserId('me')
-      // redirect to dashboard after successful registration
+      // Only redirect if remember=true to avoid losing in-memory token on page reload
+      // When remember=false, let React state update naturally
       try {
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && remember) {
           window.location.href = '/'
         }
       } catch {

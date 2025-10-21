@@ -9,6 +9,7 @@ import {
   Link,
   Text,
   Heading,
+  useToken,
 } from '@chakra-ui/react'
 
 interface FormErrors {
@@ -16,18 +17,8 @@ interface FormErrors {
   password?: string
 }
 
-/**
- * Sanitize a simple text input on the client-side to remove control characters
- * and trim whitespace. This is a lightweight protection - server-side
- * validation and sanitization must still be enforced.
- */
-function sanitizeInput(value: string) {
-  return value.replace(/[^\S\r\n\t\u0020-\u007E@.\-_+]/g, '').trim()
-}
 
-/**
- * Compute a simple password strength label. Lightweight, dependency-free.
- */
+
 function passwordStrengthLabel(pwd: string): string {
   if (!pwd) return 'Too short'
   let score = 0
@@ -38,14 +29,6 @@ function passwordStrengthLabel(pwd: string): string {
   return score <= 1 ? 'Weak' : score === 2 ? 'Fair' : score === 3 ? 'Good' : 'Strong'
 }
 
-/**
- * LoginForm - improved UX/UI and accessibility
- * - Uses Chakra UI components and app theme
- * - Real-time validation with inline messages
- * - Password visibility toggle
- * - Loading states and user-friendly error messages
- * - Accessibility: aria attributes + focus management
- */
 export default function LoginForm(): React.ReactElement {
   const { login } = useAuth()
   const [email, setEmail] = useState('')
@@ -62,6 +45,9 @@ export default function LoginForm(): React.ReactElement {
   useEffect(() => {
     emailRef.current?.focus()
   }, [])
+
+  // resolve token hex for inline styles that need concrete color strings
+  const [primary500Hex] = useToken('colors', ['primary.500'])
 
   const validateEmail = (value: string): string | null => {
     const v = value.trim()
@@ -93,9 +79,8 @@ export default function LoginForm(): React.ReactElement {
   }
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const sanitized = sanitizeInput(e.target.value)
+    const sanitized = e.target.value.replace(/[\u0000-\u001F\u007F]/g, '').trim()
     setEmail(sanitized)
-    // real-time validation: show error only if text present and invalid
     const err = validateEmail(sanitized)
     if (sanitized === '') {
       setFieldErrors(prev => ({ ...prev, email: undefined }))
@@ -140,7 +125,7 @@ export default function LoginForm(): React.ReactElement {
   return (
     <Box
       minH="100vh"
-      bg="#18181b"
+      bg="background.900"
       display="flex"
       alignItems="center"
       justifyContent="center"
@@ -149,7 +134,7 @@ export default function LoginForm(): React.ReactElement {
       <Box
         w="full"
         maxW={{ base: 'sm', sm: 'md' }}
-        bg="#23232a"
+        bg="surface.900"
         rounded="xl"
         shadow="xl"
         p={{ base: 6, sm: 8 }}
@@ -167,7 +152,7 @@ export default function LoginForm(): React.ReactElement {
           </Stack>
 
           <HStack gap={2} justify="center">
-            <Text color="#0bc5ea" fontSize="xs" aria-hidden>
+            <Text color="primary.500" fontSize="xs" aria-hidden>
               🔒
             </Text>
             <Text color="gray.400" fontSize="xs">
@@ -203,11 +188,11 @@ export default function LoginForm(): React.ReactElement {
                   type="email"
                   value={email}
                   onChange={handleEmailChange}
-                  bg="#18181b"
+                  bg="background.900"
                   border="1px solid"
                   borderColor={fieldErrors.email ? 'red.500' : 'gray.600'}
                   color="white"
-                  _focus={{ borderColor: '#0bc5ea', boxShadow: '0 0 0 1px #0bc5ea' }}
+                  _focus={{ borderColor: 'primary.500', boxShadow: `0 0 0 1px ${primary500Hex}` }}
                   _hover={{ borderColor: 'gray.500' }}
                   placeholder="Enter your email"
                   aria-label="email"
@@ -232,11 +217,11 @@ export default function LoginForm(): React.ReactElement {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={handlePasswordChange}
-                    bg="#18181b"
+                    bg="background.900"
                     border="1px solid"
                     borderColor={fieldErrors.password ? 'red.500' : 'gray.600'}
                     color="white"
-                    _focus={{ borderColor: '#0bc5ea', boxShadow: '0 0 0 1px #0bc5ea' }}
+                    _focus={{ borderColor: 'primary.500', boxShadow: `0 0 0 1px ${primary500Hex}` }}
                     _hover={{ borderColor: 'gray.500' }}
                     placeholder="Enter your password"
                     aria-label="password"
@@ -283,7 +268,7 @@ export default function LoginForm(): React.ReactElement {
                   />
                   <Text fontSize="sm" color="gray.300">Remember me</Text>
                 </label>
-                <Link color="#0bc5ea" fontSize="sm" href="/forgot-password" _hover={{ color: '#0dd5fa', textDecoration: 'underline' }}>
+                <Link color="primary.500" fontSize="sm" href="/forgot-password" _hover={{ color: 'accent.500', textDecoration: 'underline' }}>
                   Forgot password?
                 </Link>
               </HStack>
@@ -291,15 +276,15 @@ export default function LoginForm(): React.ReactElement {
               <Button
                 type="submit"
                 w="full"
-                bg="#0bc5ea"
+                bg="primary.500"
                 color="white"
                 fontWeight="semibold"
                 py={3}
                 borderRadius="md"
                 _hover={{
-                  bg: '#0dd5fa',
+                  bg: 'accent.500',
                   transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 12px rgba(11, 197, 234, 0.3)'
+                  boxShadow: `0 4px 12px ${primary500Hex}33`,
                 }}
                 _active={{ transform: 'translateY(0)' }}
                 transition="all 0.2s"
@@ -315,7 +300,7 @@ export default function LoginForm(): React.ReactElement {
 
           <HStack justify="center" gap={1}>
             <Text color="gray.400" fontSize="sm">Don't have an account?</Text>
-            <Link color="#0bc5ea" fontSize="sm" fontWeight="medium" href="/register" _hover={{ color: '#0dd5fa', textDecoration: 'underline' }}>Sign up</Link>
+            <Link color="primary.500" fontSize="sm" fontWeight="medium" href="/register" _hover={{ color: 'accent.500', textDecoration: 'underline' }}>Sign up</Link>
           </HStack>
         </Stack>
       </Box>
