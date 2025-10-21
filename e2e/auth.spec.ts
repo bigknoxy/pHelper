@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { waitForHealth, waitForFrontend } from './utils'
+
+// Increase timeout for stability when waiting for services
+test.setTimeout(180000);
+
 
 test.describe('Authentication Flow', () => {
-  test('should register, login, and verify auth state', async ({ page }) => {
+  test('should register, login, and verify auth state', async ({ page, request }) => {
     const timestamp = Date.now();
     const email = `smoke+${timestamp}@example.com`;
     const password = 'testpassword123';
@@ -10,13 +15,20 @@ test.describe('Authentication Flow', () => {
     page.on('console', msg => console.log('PAGE LOG:', msg.text()));
     page.on('pageerror', err => console.log('PAGE ERROR:', err && err.message));
 
+    // Wait for backend and frontend to be ready before navigating
+    await waitForHealth(request);
+    await waitForFrontend(request);
+
     // Prevent modal confirm from blocking tests and mark migration done
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.evaluate(() => {
       // stub window.confirm used by migration prompt
       // eslint-disable-next-line no-global-assign
       // @ts-ignore
-      window.confirm = () => false;
+      // @ts-ignore
+      // In the browser context plain window.confirm works
+      // @ts-ignore
+      (window as any).confirm = () => false;
       try {
         localStorage.setItem('migrationComplete', 'true');
       } catch {
@@ -39,7 +51,8 @@ test.describe('Authentication Flow', () => {
     // Wait for the register network response and assert token presence
     await Promise.all([
       page.waitForResponse(resp => resp.url().includes('/api/auth/register') && resp.status() === 200, { timeout: 60000 }),
-      page.click('button[aria-label="register button"]'),
+      // match by aria-label or visible text as a fallback
+      page.click('button[aria-label="register button"], button:has-text("Create account")'),
     ])
 
 

@@ -1,13 +1,21 @@
 import { test, expect } from '@playwright/test';
+import { waitForHealth, waitForFrontend } from './utils'
+
+// Increase timeout because we poll backend/frontend readiness and run full flow
+test.setTimeout(180000);
 
 test.describe('Authentication Flow (default login)', () => {
-  test('unauthenticated shows login by default and full flow', async ({ page }) => {
+  test('unauthenticated shows login by default and full flow', async ({ page, request }) => {
     const timestamp = Date.now();
     const email = `smoke+${timestamp}@example.com`;
     const password = 'testpassword123';
 
     page.on('console', msg => console.log('PAGE LOG:', msg.text()));
     page.on('pageerror', err => console.log('PAGE ERROR:', err && err.message));
+
+    // Wait for backend and frontend readiness before navigating
+    await waitForHealth(request, 30000);
+    await waitForFrontend(request, 30000);
 
     // prepare environment and avoid modal confirm interfering with tests
     await page.goto('/', { waitUntil: 'networkidle' });
@@ -47,7 +55,7 @@ test.describe('Authentication Flow (default login)', () => {
 
     await Promise.all([
       page.waitForResponse(resp => resp.url().includes('/api/auth/register') && resp.status() === 200, { timeout: 60000 }),
-      page.click('button[aria-label="register button"], button:has-text("Create account")')
+      page.click('button[aria-label="register button"], button:has-text("Create account"), button:has-text("Create account")')
     ]);
     await page.waitForSelector('button:has-text("Logout")', { timeout: 60000 });
 
