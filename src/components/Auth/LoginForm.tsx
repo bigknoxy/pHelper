@@ -42,6 +42,9 @@ export default function LoginForm() {
       <div>
         <button type="submit">{loading ? 'Logging in...' : 'Log in'}</button>
       </div>
+      <div style={{ marginTop: 8 }}>
+        <a href="/register">Don't have an account? Register</a>
+      </div>
     </form>
   )
 }

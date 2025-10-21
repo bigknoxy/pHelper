@@ -14,20 +14,18 @@ test.describe('Authentication Flow', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.evaluate(() => {
       // stub window.confirm used by migration prompt
+      // @ts-expect-error - stub confirm in browser context
       // eslint-disable-next-line no-global-assign
-      // @ts-ignore
       window.confirm = () => false;
       try {
         localStorage.setItem('migrationComplete', 'true');
-      } catch (e) {
+      } catch {
         // ignore
       }
     });
 
     // ensure a clean start (no lingering jwt)
-    await page.evaluate(() => {
-      try { localStorage.removeItem('jwt'); } catch (e) { /* ignore */ }
-    });
+    await page.evaluate(() => { try { localStorage.removeItem('jwt'); } catch { /* ignore */ } });
 
     // Register - navigate directly to the register route to avoid relying on TopBar link
     await page.goto('/register', { waitUntil: 'networkidle' });
@@ -39,17 +37,10 @@ test.describe('Authentication Flow', () => {
     await page.fill('input[aria-label="email"]', email);
     await page.fill('input[aria-label="password"]', password);
     // Wait for the register network response and assert token presence
-    const [response] = await Promise.all([
+    await Promise.all([
       page.waitForResponse(resp => resp.url().includes('/api/auth/register') && resp.status() === 200, { timeout: 60000 }),
       page.click('button[aria-label="register button"]'),
     ])
-    let registerResponseBody = null as any
-    try {
-      registerResponseBody = await response.json()
-    } catch (e) {
-      console.log('Failed to parse register response JSON', e)
-    }
-    console.log('REGISTER RESPONSE', response.status(), registerResponseBody)
 
 
     // Check if TopBar shows logout (indicating success)
@@ -62,9 +53,9 @@ test.describe('Authentication Flow', () => {
     console.log('LOCALSTORAGE jwt after register:', regJwt ? '[REDACTED]' : null);
     expect(regJwt).toBeTruthy();
 
-    // Logout and go to login
+    // Logout and go to login (TopBar no longer shows links; navigate directly)
     await page.click('button:has-text("Logout")');
-    await page.click('text=Login');
+    await page.goto('/login', { waitUntil: 'networkidle' });
     await page.waitForSelector('form[aria-label="login-form"]', { timeout: 60000 });
 
     // Login
@@ -74,7 +65,7 @@ test.describe('Authentication Flow', () => {
     // Make login persist token by checking "Remember me"
     await page.check('input[aria-label="remember me"]');
 
-    const [loginResponse] = await Promise.all([
+    await Promise.all([
       page.waitForResponse(resp => resp.url().includes('/api/auth/login') && resp.status() === 200, { timeout: 60000 }),
       page.click('button[type="submit"]'),
     ]);
@@ -103,6 +94,6 @@ test.describe('Authentication Flow', () => {
     }
 
     // cleanup persisted token
-    await page.evaluate(() => { try { localStorage.removeItem('jwt'); } catch (e) { /* ignore */ } });
+    await page.evaluate(() => { try { localStorage.removeItem('jwt'); } catch { /* ignore */ } });
   });
 });

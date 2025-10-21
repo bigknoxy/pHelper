@@ -1,6 +1,7 @@
 import { Box } from '@chakra-ui/react';
 import { useState } from 'react';
 import { Flex } from '@chakra-ui/react';
+import { useAuth } from './context/AuthContext';
 import WeightTracker from './components/WeightTracker';
 import WorkoutLogger from './components/WorkoutLogger';
 import TaskTracker from './components/TaskTracker';
@@ -11,6 +12,7 @@ import RegisterForm from './components/Auth/RegisterForm';
 import './App.css';
 
 function App() {
+  const { userId, loading } = useAuth()
   const tabs = [
     { label: "Dashboard", value: "dashboard" },
     { label: "Weight", value: "weight" },
@@ -22,14 +24,21 @@ function App() {
   // Simple client-side routing for /login and /register when not using react-router
   const path = typeof window !== 'undefined' ? window.location.pathname : '/'
 
-  if (path === '/login') return (
+  // If auth status is still being determined, show nothing to avoid flash
+  if (loading) {
+    return <Box p={4}>Loading...</Box>
+  }
+
+  // If user is not authenticated and not explicitly navigating to /register,
+  // show the login form by default.
+  if (!userId && path !== '/register') return (
     <Box p={4}>
       <TopBarAuth />
       <LoginForm />
     </Box>
   )
 
-  if (path === '/register') return (
+  if (!userId && path === '/register') return (
     <Box p={4}>
       <TopBarAuth />
       <RegisterForm />

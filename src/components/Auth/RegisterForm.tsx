@@ -36,6 +36,9 @@ export default function RegisterForm() {
       <div>
         <button type="submit" aria-label="register button" disabled={loading}>{loading ? 'Registering...' : 'Register'}</button>
       </div>
+      <div style={{ marginTop: 8 }}>
+        <a href="/login">Already have an account? Login</a>
+      </div>
     </form>
   )
 }

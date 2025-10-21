@@ -39,6 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [migrated, setMigrated] = useState<boolean>(safeGet('migrationComplete') === 'true')
 
   useEffect(() => {
+    // determine auth status on mount; show loading until token check completes
+    setLoading(true)
     try {
       const t = tokenGet()
       if (t) {
@@ -47,6 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       // ignore
+    } finally {
+      setLoading(false)
     }
   }, [])
 
@@ -82,6 +86,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       tokenSet(jwt, remember)
       setTokenState(jwt)
       setUserId('me')
+      // redirect to dashboard after successful login so the app shows main UI
+      try {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/'
+        }
+      } catch {
+        // ignore
+      }
       if (!safeGet('migrationComplete')) {
         if (window.confirm('Import your local data to the backend?')) {
           await migrateLocalData()
@@ -109,6 +121,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       tokenSet(jwt, remember)
       setTokenState(jwt)
       setUserId('me')
+      // redirect to dashboard after successful registration
+      try {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/'
+        }
+      } catch {
+        // ignore
+      }
       if (!safeGet('migrationComplete')) {
         if (window.confirm('Import your local data to the backend?')) {
           await migrateLocalData()
