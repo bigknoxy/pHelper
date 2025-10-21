@@ -12,8 +12,9 @@ test.describe('Authentication Flow (default login)', () => {
     // prepare environment and avoid modal confirm interfering with tests
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.evaluate(() => {
-      // @ts-expect-error - stub confirm in the browser context
+      // stub confirm in the browser context
       // eslint-disable-next-line no-global-assign
+      // @ts-ignore
       window.confirm = () => false;
       try { localStorage.setItem('migrationComplete', 'true') } catch { /* ignore */ }
     });
@@ -26,6 +27,18 @@ test.describe('Authentication Flow (default login)', () => {
     await page.waitForSelector('form[aria-label="login-form"]', { timeout: 60000 });
     await expect(page.locator('form[aria-label="login-form"]')).toBeVisible();
 
+    // test password toggle on login form
+    const toggle = page.locator('button[aria-label="Show password"]')
+    if (await toggle.count() > 0) {
+      // show password
+      await toggle.first().click()
+      // ensure the input type changed to text
+      await expect(page.locator('input[aria-label="password"]')).toHaveAttribute('type', 'text')
+      // hide it again
+      await page.locator('button[aria-label="Hide password"]').first().click()
+      await expect(page.locator('input[aria-label="password"]')).toHaveAttribute('type', 'password')
+    }
+
     // Navigate to register directly
     await page.goto('/register', { waitUntil: 'networkidle' });
     await page.waitForSelector('form[aria-label="register-form"]', { timeout: 60000 });
@@ -34,7 +47,7 @@ test.describe('Authentication Flow (default login)', () => {
 
     await Promise.all([
       page.waitForResponse(resp => resp.url().includes('/api/auth/register') && resp.status() === 200, { timeout: 60000 }),
-      page.click('button[aria-label="register button"]')
+      page.click('button[aria-label="register button"], button:has-text("Create account")')
     ]);
     await page.waitForSelector('button:has-text("Logout")', { timeout: 60000 });
 
@@ -56,5 +69,17 @@ test.describe('Authentication Flow (default login)', () => {
     // Logout again to ensure flow
     await page.click('button:has-text("Logout")');
     await page.waitForSelector('form[aria-label="login-form"]', { timeout: 60000 });
+
+    // Mobile responsive check: ensure form is usable on small viewport
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.waitForSelector('form[aria-label="login-form"]', { timeout: 60000 });
+    await expect(page.locator('form[aria-label="login-form"]')).toBeVisible();
+    // ensure password toggle still works on mobile
+    const mobileToggle = page.locator('button[aria-label="Show password"]')
+    if (await mobileToggle.count() > 0) {
+      await mobileToggle.first().click()
+      await expect(page.locator('input[aria-label="password"]')).toHaveAttribute('type', 'text')
+    }
   });
 });

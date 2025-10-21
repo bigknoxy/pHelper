@@ -14,8 +14,8 @@ test.describe('Authentication Flow', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.evaluate(() => {
       // stub window.confirm used by migration prompt
-      // @ts-expect-error - stub confirm in browser context
       // eslint-disable-next-line no-global-assign
+      // @ts-ignore
       window.confirm = () => false;
       try {
         localStorage.setItem('migrationComplete', 'true');
