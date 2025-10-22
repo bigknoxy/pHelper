@@ -1,7 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import LoginForm from './LoginForm.improved'
 import { AuthContext } from '../../context/AuthContext'
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react'
+import { ChakraProvider } from '@chakra-ui/react'
+import theme from '../../theme'
 
 const mockLogin = jest.fn()
 
@@ -17,7 +18,7 @@ function renderWithAuth() {
       register: jest.fn(), 
       logout: jest.fn() 
     }}>
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider value={theme}>
         <LoginForm />
       </ChakraProvider>
     </AuthContext.Provider>

@@ -1,10 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import WorkoutLogger from './WorkoutLogger';
 import '@testing-library/jest-dom';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
 import { AuthContext } from '../context/AuthContext';
 import { QueryClientWrapper } from '../test-utils/queryClient';
 import * as workoutsApi from '../api/workouts';
+import theme from '../theme';
 
 describe('WorkoutLogger', () => {
   let mockGetWorkouts: jest.SpyInstance;
@@ -42,7 +43,7 @@ describe('WorkoutLogger', () => {
     return render(
       <QueryClientWrapper>
         <AuthContext.Provider value={mockAuth}>
-          <ChakraProvider value={defaultSystem}>{ui}</ChakraProvider>
+          <ChakraProvider value={theme}>{ui}</ChakraProvider>
         </AuthContext.Provider>
       </QueryClientWrapper>
     );

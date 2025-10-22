@@ -1,8 +1,9 @@
 import React from 'react'
 import { render as rtlRender } from '@testing-library/react'
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react'
+import { ChakraProvider } from '@chakra-ui/react'
 import { AuthContext } from '../context/AuthContext'
 import { QueryClientWrapper } from './queryClient'
+import theme from '../theme'
 
 // Basic custom render helper that wraps a UI with AuthContext and ChakraProvider
 export function customRender(ui: React.ReactElement, options?: { authValue?: Partial<any> }) {
@@ -22,7 +23,7 @@ export function customRender(ui: React.ReactElement, options?: { authValue?: Par
   return rtlRender(
     <QueryClientWrapper>
       <AuthContext.Provider value={defaultAuth}>
-        <ChakraProvider value={defaultSystem}>{ui}</ChakraProvider>
+        <ChakraProvider value={theme}>{ui}</ChakraProvider>
       </AuthContext.Provider>
     </QueryClientWrapper>
   )

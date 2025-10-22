@@ -182,25 +182,26 @@ export default function LoginForm(): React.ReactElement {
                 <label style={{ display: 'block', marginBottom: 4 }}>
                   <Text color="gray.300" fontSize="sm" fontWeight="medium">Email Address</Text>
                 </label>
-                <Input
-                  ref={emailRef}
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={handleEmailChange}
-                  bg="background.900"
-                  border="1px solid"
-                  borderColor={fieldErrors.email ? 'red.500' : 'gray.600'}
-                  color="white"
-                  _focus={{ borderColor: 'primary.500', boxShadow: `0 0 0 1px ${primary500Hex}` }}
-                  _hover={{ borderColor: 'gray.500' }}
-                  placeholder="Enter your email"
-                  aria-label="email"
-                  aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-                  aria-invalid={!!fieldErrors.email}
-                  autoComplete="email"
-                  disabled={loading}
-                />
+                 <Input
+                   ref={emailRef}
+                   id="email"
+                   name="email"
+                   type="email"
+                   value={email}
+                   onChange={handleEmailChange}
+                   bg="background.900"
+                   border="1px solid"
+                   borderColor={fieldErrors.email ? 'red.500' : 'gray.600'}
+                   color="white"
+                   _focus={{ borderColor: 'primary.500', boxShadow: `0 0 0 1px ${primary500Hex}` }}
+                   _hover={{ borderColor: 'gray.500' }}
+                   placeholder="Enter your email"
+                   aria-label="email"
+                   aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+                   aria-invalid={!!fieldErrors.email}
+                   autoComplete="email"
+                   disabled={loading}
+                 />
                 {fieldErrors.email && (
                   <Text id="email-error" color="red.400" fontSize="xs" mt={1}>{fieldErrors.email}</Text>
                 )}
@@ -211,26 +212,27 @@ export default function LoginForm(): React.ReactElement {
                   <Text color="gray.300" fontSize="sm" fontWeight="medium">Password</Text>
                 </label>
                 <Box position="relative">
-                  <Input
-                    ref={passwordRef}
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={handlePasswordChange}
-                    bg="background.900"
-                    border="1px solid"
-                    borderColor={fieldErrors.password ? 'red.500' : 'gray.600'}
-                    color="white"
-                    _focus={{ borderColor: 'primary.500', boxShadow: `0 0 0 1px ${primary500Hex}` }}
-                    _hover={{ borderColor: 'gray.500' }}
-                    placeholder="Enter your password"
-                    aria-label="password"
-                    aria-describedby={fieldErrors.password ? 'password-error' : undefined}
-                    aria-invalid={!!fieldErrors.password}
-                    autoComplete="current-password"
-                    disabled={loading}
-                    pr="40px"
-                  />
+                   <Input
+                     ref={passwordRef}
+                     id="password"
+                     name="password"
+                     type={showPassword ? 'text' : 'password'}
+                     value={password}
+                     onChange={handlePasswordChange}
+                     bg="background.900"
+                     border="1px solid"
+                     borderColor={fieldErrors.password ? 'red.500' : 'gray.600'}
+                     color="white"
+                     _focus={{ borderColor: 'primary.500', boxShadow: `0 0 0 1px ${primary500Hex}` }}
+                     _hover={{ borderColor: 'gray.500' }}
+                     placeholder="Enter your password"
+                     aria-label="password"
+                     aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+                     aria-invalid={!!fieldErrors.password}
+                     autoComplete="current-password"
+                     disabled={loading}
+                     pr="40px"
+                   />
 
                   <Button
                     position="absolute"
@@ -258,16 +260,18 @@ export default function LoginForm(): React.ReactElement {
               </Box>
 
               <HStack justify="space-between" w="full">
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <input
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(e) => setRemember(e.target.checked)}
-                    aria-label="remember me"
-                    disabled={loading}
-                  />
-                  <Text fontSize="sm" color="gray.300">Remember me</Text>
-                </label>
+                 <label htmlFor="remember-me" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                   <input
+                     id="remember-me"
+                     name="remember"
+                     type="checkbox"
+                     checked={remember}
+                     onChange={(e) => setRemember(e.target.checked)}
+                     aria-label="remember me"
+                     disabled={loading}
+                   />
+                   <Text fontSize="sm" color="gray.300">Remember me</Text>
+                 </label>
                 <Link color="primary.500" fontSize="sm" href="/forgot-password" _hover={{ color: 'accent.500', textDecoration: 'underline' }}>
                   Forgot password?
                 </Link>

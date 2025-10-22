@@ -10,37 +10,48 @@ interface FormInputProps extends Omit<InputProps, 'onChange' | 'size'> {
   required?: boolean
   disabled?: boolean
   'aria-label'?: string
+  id?: string
+  name?: string
 }
 
-export default function FormInput({ 
-  label, 
-  value, 
-  onChange, 
-  type = 'text', 
-  placeholder, 
-  error, 
+export default function FormInput({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
+  error,
   required = false,
   disabled = false,
   'aria-label': ariaLabel,
+  id,
+  name,
   ...rest
 }: FormInputProps) {
+  // Generate a unique id if not provided
+  const inputId = id || `input-${label.toLowerCase().replace(/\s+/g, '-')}-${Math.random().toString(36).substr(2, 9)}`
+  const inputName = name || inputId
   // ensure there is an aria-label for accessibility
   const inputAria = ariaLabel ?? `${label}-input`
 
   return (
     <Box mb={4}>
-      <Text 
-        as="label"
-        color="gray.300" 
-        fontSize="sm" 
-        fontWeight="medium"
-        mb={2}
-        display="block"
+      <label
+        htmlFor={inputId}
+        style={{
+          color: '#D1D5DB',
+          fontSize: '14px',
+          fontWeight: '500',
+          marginBottom: '8px',
+          display: 'block'
+        }}
       >
         {label}
-        {required && <Text as="span" color="red.400" ml={1}>*</Text>}
-      </Text>
+        {required && <span style={{ color: '#F56565', marginLeft: '4px' }}>*</span>}
+      </label>
       <Input
+        id={inputId}
+        name={inputName}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         type={type}
@@ -58,14 +69,14 @@ export default function FormInput({
         disabled={disabled}
         aria-label={inputAria}
         aria-invalid={!!error}
-        aria-describedby={error ? `${inputAria}-error` : undefined}
+        aria-describedby={error ? `${inputId}-error` : undefined}
         {...rest}
       />
       {error && (
-        <Text 
-          id={`${inputAria}-error`}
-          color="red.400" 
-          fontSize="xs" 
+        <Text
+          id={`${inputId}-error`}
+          color="red.400"
+          fontSize="xs"
           mt={1}
           role="alert"
         >

@@ -177,24 +177,25 @@ export default function RegisterForm(): React.ReactElement {
                 <label style={{ display: 'block', marginBottom: 4 }}>
                   <Text color="gray.300" fontSize="sm" fontWeight="medium">Email address</Text>
                 </label>
-                <Input
-                  ref={emailRef}
-                  id="reg-email"
-                  type="email"
-                  value={email}
-                  onChange={e => handleEmailChange(e.target.value)}
-                  bg="background.900"
-                  border="1px solid"
-                  borderColor={fieldErrors.email ? 'red.500' : 'gray.600'}
-                  color="white"
-                  _focus={{ borderColor: primary500Hex, boxShadow: `0 0 0 1px ${primary500Hex}` }}
-                  placeholder="Enter your email"
-                  aria-label="email"
-                  aria-describedby={fieldErrors.email ? 'reg-email-error' : undefined}
-                  aria-invalid={!!fieldErrors.email}
-                  autoComplete="email"
-                  disabled={loading}
-                />
+                 <Input
+                   ref={emailRef}
+                   id="reg-email"
+                   name="email"
+                   type="email"
+                   value={email}
+                   onChange={e => handleEmailChange(e.target.value)}
+                   bg="background.900"
+                   border="1px solid"
+                   borderColor={fieldErrors.email ? 'red.500' : 'gray.600'}
+                   color="white"
+                   _focus={{ borderColor: primary500Hex, boxShadow: `0 0 0 1px ${primary500Hex}` }}
+                   placeholder="Enter your email"
+                   aria-label="email"
+                   aria-describedby={fieldErrors.email ? 'reg-email-error' : undefined}
+                   aria-invalid={!!fieldErrors.email}
+                   autoComplete="email"
+                   disabled={loading}
+                 />
                 {fieldErrors.email && <Text id="reg-email-error" color="red.400" fontSize="xs" mt={1}>{fieldErrors.email}</Text>}
               </Box>
 
@@ -202,23 +203,24 @@ export default function RegisterForm(): React.ReactElement {
                 <label style={{ display: 'block', marginBottom: 4 }}>
                   <Text color="gray.300" fontSize="sm" fontWeight="medium">Password</Text>
                 </label>
-                <Input
-                  id="reg-password"
-                  type="password"
-                  value={password}
-                  onChange={e => handlePasswordChange(e.target.value)}
-                  bg="background.900"
-                  border="1px solid"
-                  borderColor={fieldErrors.password ? 'red.500' : 'gray.600'}
-                  color="white"
-                  _focus={{ borderColor: primary500Hex, boxShadow: `0 0 0 1px ${primary500Hex}` }}
-                  placeholder="Create a password"
-                  aria-label="password"
-                  aria-describedby={fieldErrors.password ? 'reg-password-error' : 'password-strength'}
-                  aria-invalid={!!fieldErrors.password}
-                  autoComplete="new-password"
-                  disabled={loading}
-                />
+                 <Input
+                   id="reg-password"
+                   name="password"
+                   type="password"
+                   value={password}
+                   onChange={e => handlePasswordChange(e.target.value)}
+                   bg="background.900"
+                   border="1px solid"
+                   borderColor={fieldErrors.password ? 'red.500' : 'gray.600'}
+                   color="white"
+                   _focus={{ borderColor: primary500Hex, boxShadow: `0 0 0 1px ${primary500Hex}` }}
+                   placeholder="Create a password"
+                   aria-label="password"
+                   aria-describedby={fieldErrors.password ? 'reg-password-error' : 'password-strength'}
+                   aria-invalid={!!fieldErrors.password}
+                   autoComplete="new-password"
+                   disabled={loading}
+                 />
                 {fieldErrors.password && <Text id="reg-password-error" color="red.400" fontSize="xs" mt={1}>{fieldErrors.password}</Text>}
 
                 <Box mt={2} aria-live="polite" id="password-strength">
@@ -260,23 +262,24 @@ export default function RegisterForm(): React.ReactElement {
                 <label style={{ display: 'block', marginBottom: 4 }}>
                   <Text color="gray.300" fontSize="sm" fontWeight="medium">Confirm password</Text>
                 </label>
-                <Input
-                  id="reg-confirm"
-                  type="password"
-                  value={confirm}
-                  onChange={e => handleConfirmChange(e.target.value)}
-                  bg="background.900"
-                  border="1px solid"
-                  borderColor={fieldErrors.confirm ? 'red.500' : 'gray.600'}
-                  color="white"
-                  _focus={{ borderColor: primary500Hex, boxShadow: `0 0 0 1px ${primary500Hex}` }}
-                  placeholder="Confirm your password"
-                  aria-label="confirm password"
-                  aria-describedby={fieldErrors.confirm ? 'reg-confirm-error' : undefined}
-                  aria-invalid={!!fieldErrors.confirm}
-                  autoComplete="new-password"
-                  disabled={loading}
-                />
+                 <Input
+                   id="reg-confirm"
+                   name="confirmPassword"
+                   type="password"
+                   value={confirm}
+                   onChange={e => handleConfirmChange(e.target.value)}
+                   bg="background.900"
+                   border="1px solid"
+                   borderColor={fieldErrors.confirm ? 'red.500' : 'gray.600'}
+                   color="white"
+                   _focus={{ borderColor: primary500Hex, boxShadow: `0 0 0 1px ${primary500Hex}` }}
+                   placeholder="Confirm your password"
+                   aria-label="confirm password"
+                   aria-describedby={fieldErrors.confirm ? 'reg-confirm-error' : undefined}
+                   aria-invalid={!!fieldErrors.confirm}
+                   autoComplete="new-password"
+                   disabled={loading}
+                 />
                 {fieldErrors.confirm && <Text id="reg-confirm-error" color="red.400" fontSize="xs" mt={1}>{fieldErrors.confirm}</Text>}
               </Box>
 

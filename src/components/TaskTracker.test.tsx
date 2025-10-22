@@ -3,7 +3,8 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import TaskTracker from "./TaskTracker";
 import * as apiTasks from '../api/tasks';
 import { AuthContext } from '../context/AuthContext';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
+import theme from '../theme';
 
 // Helper to clear localStorage before each test
 beforeEach(() => {
@@ -44,7 +45,7 @@ describe("TaskTracker", () => {
     };
     return render(
       <AuthContext.Provider value={mockAuth}>
-        <ChakraProvider value={defaultSystem}>{ui}</ChakraProvider>
+        <ChakraProvider value={theme}>{ui}</ChakraProvider>
       </AuthContext.Provider>
     );
   }

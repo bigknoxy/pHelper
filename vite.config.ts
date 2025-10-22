@@ -12,5 +12,17 @@ export default defineConfig({
         secure: false,
       },
     },
+    // Add headers to prevent Chrome extension interference
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+    },
+  },
+  // Ensure proper ES module handling
+  esbuild: {
+    target: 'es2022',
+  },
+  build: {
+    target: 'es2022',
   },
 })

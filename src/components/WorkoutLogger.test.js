@@ -2,10 +2,11 @@ import { jsx as _jsx } from "react/jsx-runtime";
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import WorkoutLogger from './WorkoutLogger';
 import '@testing-library/jest-dom';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
 import { AuthContext } from '../context/AuthContext';
 import { QueryClientWrapper } from '../test-utils/queryClient';
 import * as workoutsApi from '../api/workouts';
+import theme from '../theme';
 describe('WorkoutLogger', () => {
     let mockGetWorkouts;
     let mockAddWorkout;
@@ -28,7 +29,7 @@ describe('WorkoutLogger', () => {
             register: jest.fn(async () => undefined),
             logout: jest.fn(),
         };
-        return render(_jsx(QueryClientWrapper, { children: _jsx(AuthContext.Provider, { value: mockAuth, children: _jsx(ChakraProvider, { value: defaultSystem, children: ui }) }) }));
+        return render(_jsx(QueryClientWrapper, { children: _jsx(AuthContext.Provider, { value: mockAuth, children: _jsx(ChakraProvider, { value: theme, children: ui }) }) }));
     }
     it('renders the workout form', async () => {
         renderWithProvider(_jsx(WorkoutLogger, {}));

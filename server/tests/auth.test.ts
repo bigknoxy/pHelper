@@ -5,7 +5,7 @@ import app from '../src/app'
 // Polyfill TextEncoder for Node.js 18+ test environment
 import { TextEncoder } from 'util'
 if (typeof global.TextEncoder === 'undefined') {
-  global.TextEncoder = TextEncoder
+  global.TextEncoder = TextEncoder as any
 }
 
 describe('Auth endpoints', () => {

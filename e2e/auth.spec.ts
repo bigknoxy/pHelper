@@ -91,18 +91,20 @@ test.describe('Authentication Flow', () => {
     // Verify login success
     await expect(page.locator('button:has-text("Logout")')).toBeVisible();
 
-    // Optionally, navigate to dashboard and create a task
-    const postLoginBody = await page.evaluate(() => document.body.innerHTML)
-    console.log('BODY AFTER LOGIN:', postLoginBody.slice(0, 2000))
-    // Try to click dashboard if present
-    if (await page.locator('button:has-text("Dashboard")').count() > 0) {
-      await page.click('button:has-text("Dashboard")')
-      await page.fill('input[placeholder*="task"]', 'Test Task')
-      await page.click('button:has-text("Add")')
-      await expect(page.locator('text=Test Task')).toBeVisible()
-    } else {
-      console.log('Dashboard button not present; skipping task creation')
-    }
+     // Optionally, navigate to tasks tab and create a task
+     const postLoginBody = await page.evaluate(() => document.body.innerHTML)
+     console.log('BODY AFTER LOGIN:', postLoginBody.slice(0, 2000))
+     // Try to click tasks tab if present
+     if (await page.locator('button:has-text("Tasks")').count() > 0) {
+       await page.click('button:has-text("Tasks")')
+       // Wait for the task input to be visible after tab switch
+       await page.waitForSelector('input[placeholder*="task"]', { timeout: 10000 })
+       await page.fill('input[placeholder*="task"]', 'Test Task')
+       await page.click('button:has-text("Add Task")')
+       await expect(page.locator('text=Test Task')).toBeVisible()
+     } else {
+       console.log('Tasks button not present; skipping task creation')
+     }
 
     // cleanup persisted token
     await page.evaluate(() => { try { localStorage.removeItem('jwt'); } catch { /* ignore */ } });

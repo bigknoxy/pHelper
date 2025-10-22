@@ -3,10 +3,11 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react';
 import LoginForm from './LoginForm';
 import { AuthContext } from '../../context/AuthContext';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
+import theme from '../../theme';
 const mockLogin = jest.fn();
 function renderWithAuth() {
-    return render(_jsx(AuthContext.Provider, { value: { userId: null, token: null, loading: false, error: null, migrated: false, login: mockLogin, register: jest.fn(), logout: jest.fn() }, children: _jsx(ChakraProvider, { value: defaultSystem, children: _jsx(LoginForm, {}) }) }));
+    return render(_jsx(AuthContext.Provider, { value: { userId: null, token: null, loading: false, error: null, migrated: false, login: mockLogin, register: jest.fn(), logout: jest.fn() }, children: _jsx(ChakraProvider, { value: theme, children: _jsx(LoginForm, {}) }) }));
 }
 afterEach(() => {
     jest.clearAllMocks();

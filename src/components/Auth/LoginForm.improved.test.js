@@ -2,7 +2,8 @@ import { jsx as _jsx } from "react/jsx-runtime";
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import LoginForm from './LoginForm.improved';
 import { AuthContext } from '../../context/AuthContext';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
+import theme from '../../theme';
 const mockLogin = jest.fn();
 function renderWithAuth() {
     return render(_jsx(AuthContext.Provider, { value: {
@@ -14,7 +15,7 @@ function renderWithAuth() {
             login: mockLogin,
             register: jest.fn(),
             logout: jest.fn()
-        }, children: _jsx(ChakraProvider, { value: defaultSystem, children: _jsx(LoginForm, {}) }) }));
+        }, children: _jsx(ChakraProvider, { value: theme, children: _jsx(LoginForm, {}) }) }));
 }
 describe('LoginForm Improved', () => {
     beforeEach(() => {

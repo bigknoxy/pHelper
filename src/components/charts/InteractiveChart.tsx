@@ -23,7 +23,7 @@ import { ChartType } from '../../stores/dashboardStore'
 
 interface DataPoint {
   date: string
-  [key: string]: any
+  [key: string]: string | number
 }
 
 interface InteractiveChartProps {
@@ -38,9 +38,9 @@ interface InteractiveChartProps {
   title?: string
   xAxisKey?: string
   yAxisKeys?: string[]
-  formatXAxis?: (value: any) => string
-  formatYAxis?: (value: any) => string
-  formatTooltip?: (value: any, name: string) => [string, string]
+  formatXAxis?: (value: unknown) => string
+  formatYAxis?: (value: unknown) => string
+  formatTooltip?: (value: unknown, name: string) => [string, string]
 }
 
 const InteractiveChart: React.FC<InteractiveChartProps> = ({

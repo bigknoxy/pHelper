@@ -3,7 +3,7 @@ import app from '../src/app'
 
 import { TextEncoder } from 'util'
 if (typeof global.TextEncoder === 'undefined') {
-  global.TextEncoder = TextEncoder
+  global.TextEncoder = TextEncoder as any
 }
 
 describe('Weight endpoints', () => {

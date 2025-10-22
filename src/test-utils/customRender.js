@@ -1,8 +1,9 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { render as rtlRender } from '@testing-library/react';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
 import { AuthContext } from '../context/AuthContext';
 import { QueryClientWrapper } from './queryClient';
+import theme from '../theme';
 // Basic custom render helper that wraps a UI with AuthContext and ChakraProvider
 export function customRender(ui, options) {
     const { authValue } = options || {};
@@ -17,7 +18,7 @@ export function customRender(ui, options) {
         logout: jest.fn(),
         ...authValue,
     };
-    return rtlRender(_jsx(QueryClientWrapper, { children: _jsx(AuthContext.Provider, { value: defaultAuth, children: _jsx(ChakraProvider, { value: defaultSystem, children: ui }) }) }));
+    return rtlRender(_jsx(QueryClientWrapper, { children: _jsx(AuthContext.Provider, { value: defaultAuth, children: _jsx(ChakraProvider, { value: theme, children: ui }) }) }));
 }
 // Provide a render wrapper so tests can import { render } from this file
 export function render(ui, options) {

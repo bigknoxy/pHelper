@@ -63,52 +63,54 @@ export default function Form({
               {field.label}
               {field.required && <span style={{ color: '#F56565', marginLeft: '4px' }}>*</span>}
             </label>
-            {field.type === 'textarea' ? (
-              <textarea
-                id={field.name}
-                value={field.value}
-                onChange={(e) => field.onChange(e.target.value)}
-                placeholder={field.placeholder}
-                style={{
-                  backgroundColor: '#2a2a32',
-                  border: '2px solid #4B5563',
-                  color: 'white',
-                  borderRadius: '6px',
-                  padding: '12px',
-                  minHeight: '100px',
-                  width: '100%',
-                  fontSize: '14px',
-                  fontFamily: 'inherit'
-                }}
-                disabled={field.disabled}
-                aria-label={field['aria-label']}
-                aria-invalid={!!error}
-                required={field.required}
-                rows={4}
-              />
-            ) : (
-              <input
-                id={field.name}
-                type={field.type || 'text'}
-                value={field.value}
-                onChange={(e) => field.onChange(e.target.value)}
-                placeholder={field.placeholder}
-                style={{
-                  backgroundColor: '#2a2a32',
-                  border: '2px solid #4B5563',
-                  color: 'white',
-                  borderRadius: '6px',
-                  padding: '12px',
-                  width: '100%',
-                  fontSize: '14px',
-                  fontFamily: 'inherit'
-                }}
-                disabled={field.disabled}
-                aria-label={field['aria-label']}
-                aria-invalid={!!error}
-                required={field.required}
-              />
-            )}
+             {field.type === 'textarea' ? (
+               <textarea
+                 id={field.name}
+                 name={field.name}
+                 value={field.value}
+                 onChange={(e) => field.onChange(e.target.value)}
+                 placeholder={field.placeholder}
+                 style={{
+                   backgroundColor: '#2a2a32',
+                   border: '2px solid #4B5563',
+                   color: 'white',
+                   borderRadius: '6px',
+                   padding: '12px',
+                   minHeight: '100px',
+                   width: '100%',
+                   fontSize: '14px',
+                   fontFamily: 'inherit'
+                 }}
+                 disabled={field.disabled}
+                 aria-label={field['aria-label']}
+                 aria-invalid={!!error}
+                 required={field.required}
+                 rows={4}
+               />
+             ) : (
+               <input
+                 id={field.name}
+                 name={field.name}
+                 type={field.type || 'text'}
+                 value={field.value}
+                 onChange={(e) => field.onChange(e.target.value)}
+                 placeholder={field.placeholder}
+                 style={{
+                   backgroundColor: '#2a2a32',
+                   border: '2px solid #4B5563',
+                   color: 'white',
+                   borderRadius: '6px',
+                   padding: '12px',
+                   width: '100%',
+                   fontSize: '14px',
+                   fontFamily: 'inherit'
+                 }}
+                 disabled={field.disabled}
+                 aria-label={field['aria-label']}
+                 aria-invalid={!!error}
+                 required={field.required}
+               />
+             )}
           </Box>
         ))}
 

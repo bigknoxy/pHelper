@@ -3,7 +3,8 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import TaskTracker from "./TaskTracker";
 import * as apiTasks from '../api/tasks';
 import { AuthContext } from '../context/AuthContext';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
+import theme from '../theme';
 // Helper to clear localStorage before each test
 beforeEach(() => {
     localStorage.clear();
@@ -31,7 +32,7 @@ describe("TaskTracker", () => {
             register: jest.fn(async () => undefined),
             logout: jest.fn(),
         };
-        return render(_jsx(AuthContext.Provider, { value: mockAuth, children: _jsx(ChakraProvider, { value: defaultSystem, children: ui }) }));
+        return render(_jsx(AuthContext.Provider, { value: mockAuth, children: _jsx(ChakraProvider, { value: theme, children: ui }) }));
     }
     it("renders add task form and empty list", async () => {
         renderWithAuth(_jsx(TaskTracker, {}));

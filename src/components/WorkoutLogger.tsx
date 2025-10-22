@@ -38,18 +38,18 @@ export default function WorkoutLogger() {
         <>
           <Heading size="md" mb={4}>Log Your Workout</Heading>
           <Stack gap={4} align="stretch">
-            <label>Date
-              <Input type="date" aria-label="date" value={date} onChange={e => setDate(e.target.value)} />
-            </label>
-            <label>Type
-              <Input aria-label="type" value={type} onChange={e => setType(e.target.value)} placeholder="e.g. Running" />
-            </label>
-            <label>Duration (min)
-              <Input type="number" aria-label="duration" value={duration} onChange={e => setDuration(e.target.value)} />
-            </label>
-            <label>Notes
-              <Input aria-label="notes" value={notes} onChange={e => setNotes(e.target.value)} />
-            </label>
+             <label htmlFor="workout-date">Date
+               <Input id="workout-date" name="date" type="date" aria-label="date" value={date} onChange={e => setDate(e.target.value)} />
+             </label>
+             <label htmlFor="workout-type">Type
+               <Input id="workout-type" name="type" aria-label="type" value={type} onChange={e => setType(e.target.value)} placeholder="e.g. Running" />
+             </label>
+             <label htmlFor="workout-duration">Duration (min)
+               <Input id="workout-duration" name="duration" type="number" aria-label="duration" value={duration} onChange={e => setDuration(e.target.value)} />
+             </label>
+             <label htmlFor="workout-notes">Notes
+               <Input id="workout-notes" name="notes" aria-label="notes" value={notes} onChange={e => setNotes(e.target.value)} />
+             </label>
             <Button
               colorScheme="teal"
               variant="solid"

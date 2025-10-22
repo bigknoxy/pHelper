@@ -5,6 +5,10 @@ import { z } from 'zod'
 
 const db = prisma as unknown as PrismaClient
 
+type WeightEntry = { weight: number; date: Date }
+type WorkoutEntry = { duration: number; date: Date }
+type TaskEntry = { status: string; updatedAt: Date; createdAt: Date }
+
 const timeRangeSchema = z.enum(['7', '30', '90', '365', 'all'])
 const analyticsQuerySchema = z.object({
   timeRange: timeRangeSchema.optional().default('30'),
@@ -426,7 +430,7 @@ export async function getGoalAnalytics(req: Request, res: Response) {
         let current = 0
 
         switch (goal.category) {
-          case 'WEIGHT':
+          case 'WEIGHT': {
             // For weight goals, we need to calculate based on weight entries
             const latestWeight = await db.weightEntry.findFirst({
               where: { userId },
@@ -434,8 +438,9 @@ export async function getGoalAnalytics(req: Request, res: Response) {
             })
             current = latestWeight?.weight || 0
             break
+          }
 
-          case 'WORKOUTS':
+          case 'WORKOUTS': {
             // Count workouts in the last 30 days
             const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
             const workoutCount = await db.workout.count({
@@ -446,8 +451,9 @@ export async function getGoalAnalytics(req: Request, res: Response) {
             })
             current = workoutCount
             break
+          }
 
-          case 'TASKS':
+          case 'TASKS': {
             // Count completed tasks in the last 30 days
             const taskCount = await db.task.count({
               where: {
@@ -458,6 +464,7 @@ export async function getGoalAnalytics(req: Request, res: Response) {
             })
             current = taskCount
             break
+          }
         }
 
         // Update the goal's current progress
@@ -486,7 +493,7 @@ export async function getGoalAnalytics(req: Request, res: Response) {
 }
 
 // Helper functions
-function calculateMovingAverages(weights: any[], periods: number[]) {
+function calculateMovingAverages(weights: WeightEntry[], periods: number[]) {
   const result: Record<string, number[]> = {}
 
   periods.forEach(period => {
@@ -500,7 +507,7 @@ function calculateMovingAverages(weights: any[], periods: number[]) {
   return result
 }
 
-function calculateWorkoutStreak(workouts: any[]) {
+function calculateWorkoutStreak(workouts: WorkoutEntry[]) {
   if (workouts.length === 0) return { current: 0, longest: 0 }
 
   // Sort by date descending
@@ -534,7 +541,7 @@ function calculateWorkoutStreak(workouts: any[]) {
   return { current: currentStreak, longest: longestStreak }
 }
 
-function calculateTaskStreak(completedTasks: any[]) {
+function calculateTaskStreak(completedTasks: TaskEntry[]) {
   if (completedTasks.length === 0) return 0
 
   // Sort by completion date descending
@@ -560,7 +567,7 @@ function calculateTaskStreak(completedTasks: any[]) {
   return streak
 }
 
-function calculateCurrentTaskStreak(completedTasks: any[]) {
+function calculateCurrentTaskStreak(completedTasks: TaskEntry[]) {
   if (completedTasks.length === 0) return 0
 
   // Sort by completion date descending

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import {
   Box,
   SimpleGrid,
@@ -23,13 +23,9 @@ import {
 } from "../hooks/useAnalytics"
 import { useGoalAnalytics } from "../hooks/useGoals"
 import { useDashboardStore, TimeRange } from "../stores/dashboardStore"
-import { WeightEntry } from "../api/weights"
-import { WorkoutEntry } from "../api/workouts"
-import { Task } from "../api/tasks"
 import Card from "./shared/Card"
 import LoadingSpinner from "./shared/LoadingSpinner"
 import ErrorMessage from "./shared/ErrorMessage"
-import Button from "./shared/Button"
 import InteractiveChart from "./charts/InteractiveChart"
 import GoalProgressIndicator from "./charts/GoalProgressIndicator"
 import PersonalRecords from "./charts/PersonalRecords"
@@ -42,11 +38,7 @@ export default function Dashboard() {
     selectedMetrics,
     showMovingAverage,
     showTrendLine,
-    showPersonalRecords,
-    setTimeRange,
-    setChartType,
-    toggleMetric,
-    resetFilters
+    setTimeRange
   } = useDashboardStore()
 
    // Analytics hooks
@@ -213,22 +205,6 @@ export default function Dashboard() {
     setTimeRange(value as TimeRange)
   }
 
-  const handleExportData = () => {
-    const data = {
-      weights,
-      workouts,
-      tasks,
-      analytics: { weightAnalytics, workoutAnalytics, taskAnalytics, overview },
-      exportDate: new Date().toISOString(),
-    }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `fitness-data-${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-  }
-
   const handleRefreshData = () => {
     invalidateAllAnalytics()
   }
@@ -240,17 +216,6 @@ export default function Dashboard() {
   if (error) {
     const message = (error as Error)?.message || 'Failed to load dashboard data. Please try again later.'
     return <ErrorMessage title="Dashboard Error" message={message} />
-  }
-
-  const getTimeRangeLabel = (range: TimeRange) => {
-    switch (range) {
-      case '7': return 'Last 7 days'
-      case '30': return 'Last 30 days'
-      case '90': return 'Last 90 days'
-      case '365': return 'Last year'
-      case 'all': return 'All time'
-      default: return 'Last 30 days'
-    }
   }
 
   return (

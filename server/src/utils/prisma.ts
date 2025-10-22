@@ -11,6 +11,7 @@ const db: Record<string, RecordMap> = {
   task: {},
   workout: {},
   weightEntry: {},
+  goal: {},
 }
 let idCounter = 1
 const genId = () => `mock-${idCounter++}`
@@ -90,6 +91,7 @@ const mockPrisma: Record<string, unknown> = {
   workout: makeModel('workout'),
   task: makeModel('task'),
   weightEntry: makeModel('weightEntry'),
+  goal: makeModel('goal'),
   $connect: async () => {},
   $disconnect: async () => {},
 }

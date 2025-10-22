@@ -8,7 +8,7 @@ export default function Form({ title, fields, onSubmit, submitLabel, isLoading =
                                     fontWeight: '500',
                                     marginBottom: '8px',
                                     display: 'block'
-                                }, children: [field.label, field.required && _jsx("span", { style: { color: '#F56565', marginLeft: '4px' }, children: "*" })] }), field.type === 'textarea' ? (_jsx("textarea", { id: field.name, value: field.value, onChange: (e) => field.onChange(e.target.value), placeholder: field.placeholder, style: {
+                                }, children: [field.label, field.required && _jsx("span", { style: { color: '#F56565', marginLeft: '4px' }, children: "*" })] }), field.type === 'textarea' ? (_jsx("textarea", { id: field.name, name: field.name, value: field.value, onChange: (e) => field.onChange(e.target.value), placeholder: field.placeholder, style: {
                                     backgroundColor: '#2a2a32',
                                     border: '2px solid #4B5563',
                                     color: 'white',
@@ -18,7 +18,7 @@ export default function Form({ title, fields, onSubmit, submitLabel, isLoading =
                                     width: '100%',
                                     fontSize: '14px',
                                     fontFamily: 'inherit'
-                                }, disabled: field.disabled, "aria-label": field['aria-label'], "aria-invalid": !!error, required: field.required, rows: 4 })) : (_jsx("input", { id: field.name, type: field.type || 'text', value: field.value, onChange: (e) => field.onChange(e.target.value), placeholder: field.placeholder, style: {
+                                }, disabled: field.disabled, "aria-label": field['aria-label'], "aria-invalid": !!error, required: field.required, rows: 4 })) : (_jsx("input", { id: field.name, name: field.name, type: field.type || 'text', value: field.value, onChange: (e) => field.onChange(e.target.value), placeholder: field.placeholder, style: {
                                     backgroundColor: '#2a2a32',
                                     border: '2px solid #4B5563',
                                     color: 'white',

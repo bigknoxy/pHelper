@@ -6,8 +6,6 @@ import {
   updateGoal,
   deleteGoal,
   getGoalAnalytics,
-  Goal,
-  GoalWithProgress,
   CreateGoalData,
   UpdateGoalData
 } from '../api/goals'

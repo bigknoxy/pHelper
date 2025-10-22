@@ -42,10 +42,14 @@ app.use('/api/auth', authRoutes)
 import weightRoutes from './routes/weights'
 import workoutRoutes from './routes/workouts'
 import taskRoutes from './routes/tasks'
+import goalRoutes from './routes/goals'
+import analyticsRoutes from './routes/analytics'
 
 app.use('/api/weights', weightRoutes)
 app.use('/api/workouts', workoutRoutes)
 app.use('/api/tasks', taskRoutes)
+app.use('/api/goals', goalRoutes)
+app.use('/api/analytics', analyticsRoutes)
 
 import { errorHandler } from './middleware/errorHandler'
 app.use(errorHandler)

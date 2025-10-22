@@ -5,6 +5,17 @@ import { z } from 'zod'
 
 const db = prisma as unknown as PrismaClient
 
+type GoalUpdateData = {
+  title?: string
+  description?: string
+  target?: number
+  current?: number
+  unit?: string
+  category?: 'WEIGHT' | 'WORKOUTS' | 'TASKS'
+  status?: 'ACTIVE' | 'COMPLETED' | 'PAUSED' | 'CANCELLED'
+  deadline?: Date | null
+}
+
 const createGoalSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
@@ -92,8 +103,8 @@ export async function updateGoal(req: Request, res: Response) {
       return res.status(404).json({ error: 'Goal not found' })
     }
 
-    const updateData: any = { ...parse.data }
-    if (updateData.deadline) {
+    const updateData: GoalUpdateData = parse.data as GoalUpdateData
+    if (updateData.deadline && typeof updateData.deadline === 'string') {
       updateData.deadline = new Date(updateData.deadline)
     }
 
@@ -156,7 +167,7 @@ export async function getGoalAnalytics(req: Request, res: Response) {
         let current = 0
 
         switch (goal.category) {
-          case 'WEIGHT':
+          case 'WEIGHT': {
             // For weight goals, we need to calculate based on weight entries
             const latestWeight = await db.weightEntry.findFirst({
               where: { userId },
@@ -164,8 +175,9 @@ export async function getGoalAnalytics(req: Request, res: Response) {
             })
             current = latestWeight?.weight || 0
             break
+          }
 
-          case 'WORKOUTS':
+          case 'WORKOUTS': {
             // Count workouts in the last 30 days
             const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
             const workoutCount = await db.workout.count({
@@ -176,8 +188,9 @@ export async function getGoalAnalytics(req: Request, res: Response) {
             })
             current = workoutCount
             break
+          }
 
-          case 'TASKS':
+          case 'TASKS': {
             // Count completed tasks in the last 30 days
             const taskCount = await db.task.count({
               where: {
@@ -188,6 +201,7 @@ export async function getGoalAnalytics(req: Request, res: Response) {
             })
             current = taskCount
             break
+          }
         }
 
         // Update the goal's current progress
