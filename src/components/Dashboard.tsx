@@ -1,76 +1,224 @@
-import { useState, ChangeEvent, useMemo } from 'react';
-import { Box, SimpleGrid, Text, useBreakpointValue, Heading } from "@chakra-ui/react";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { useWeights } from "../hooks/useWeights";
-import { useWorkouts } from "../hooks/useWorkouts";
-import { useTasks } from "../hooks/useTasks";
-import { WeightEntry } from "../api/weights";
-import { WorkoutEntry } from "../api/workouts";
-import { Task } from "../api/tasks";
-import Card from "./shared/Card";
-import LoadingSpinner from "./shared/LoadingSpinner";
-import ErrorMessage from "./shared/ErrorMessage";
-import ChartContainer from "./shared/ChartContainer";
-import Button from "./shared/Button";
+import React, { useState, useMemo } from 'react'
+import {
+  Box,
+  SimpleGrid,
+  Text,
+  useBreakpointValue,
+  Heading,
+  VStack,
+  HStack,
+  Badge,
+  IconButton
+} from "@chakra-ui/react"
+import { Settings, TrendingUp, Target, Award } from "lucide-react"
+import { useWeights } from "../hooks/useWeights"
+import { useWorkouts } from "../hooks/useWorkouts"
+import { useTasks } from "../hooks/useTasks"
+import {
+  useWeightAnalytics,
+  useWorkoutAnalytics,
+  useTaskAnalytics,
+  useDashboardOverview,
+  useInvalidateAnalytics
+} from "../hooks/useAnalytics"
+import { useGoalAnalytics } from "../hooks/useGoals"
+import { useDashboardStore, TimeRange } from "../stores/dashboardStore"
+import { WeightEntry } from "../api/weights"
+import { WorkoutEntry } from "../api/workouts"
+import { Task } from "../api/tasks"
+import Card from "./shared/Card"
+import LoadingSpinner from "./shared/LoadingSpinner"
+import ErrorMessage from "./shared/ErrorMessage"
+import Button from "./shared/Button"
+import InteractiveChart from "./charts/InteractiveChart"
+import GoalProgressIndicator from "./charts/GoalProgressIndicator"
+import PersonalRecords from "./charts/PersonalRecords"
 
 export default function Dashboard() {
-  const { weights = [], isLoading: weightsLoading, error: weightsError } = useWeights()
-  const { workouts = [], isLoading: workoutsLoading, error: workoutsError } = useWorkouts()
-  const { tasks = [], isLoading: tasksLoading, error: tasksError } = useTasks()
+  // Dashboard store for state management
+  const {
+    timeRange,
+    chartType,
+    selectedMetrics,
+    showMovingAverage,
+    showTrendLine,
+    showPersonalRecords,
+    setTimeRange,
+    setChartType,
+    toggleMetric,
+    resetFilters
+  } = useDashboardStore()
 
-  const isLoading = weightsLoading || workoutsLoading || tasksLoading
-  const error = weightsError || workoutsError || tasksError
+   // Analytics hooks
+   const { data: weightAnalytics, isLoading: weightLoading, error: weightError } = useWeightAnalytics(timeRange)
+   const { data: workoutAnalytics, isLoading: workoutLoading, error: workoutError } = useWorkoutAnalytics(timeRange)
+   const { data: taskAnalytics, isLoading: taskLoading, error: taskError } = useTaskAnalytics(timeRange)
+   const { data: overview, isLoading: overviewLoading, error: overviewError } = useDashboardOverview(timeRange)
+   const { data: goals, isLoading: goalsLoading, error: goalsError } = useGoalAnalytics()
+   const { invalidateAllAnalytics } = useInvalidateAnalytics()
 
-  const [timeRange, setTimeRange] = useState<'7' | '30' | '90'>('7')
+  // Legacy hooks for basic data (keeping for compatibility)
+  const { weights = [], isLoading: weightsLoading } = useWeights()
+  const { workouts = [], isLoading: workoutsLoading } = useWorkouts()
+  const { tasks = [], isLoading: tasksLoading } = useTasks()
+
+   const isLoading = weightsLoading || workoutsLoading || tasksLoading || weightLoading || workoutLoading || taskLoading || overviewLoading || goalsLoading
+   const error = weightError || workoutError || taskError || overviewError || goalsError
+
   const gridCols = useBreakpointValue({ base: 1, sm: 2, md: 3, lg: 4 })
 
-  const handleTimeRangeChange = (e: ChangeEvent<HTMLSelectElement>) => setTimeRange(e.target.value as '7' | '30' | '90')
+   // Transform real goals data for the component
+   const realGoals = useMemo(() => {
+     if (!goals) return []
 
-  // compute metrics (last 7 days) - memoized for performance
-  const metrics = useMemo(() => {
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-    const last7Weights = (weights || []).filter((w: WeightEntry) => w.date >= sevenDaysAgo)
-    const latestWeight = last7Weights.length > 0 ? last7Weights[last7Weights.length - 1].weight : null
-    const weightTrend = last7Weights.length > 1 ? last7Weights[last7Weights.length - 1].weight - last7Weights[0].weight : 0
+     return goals.map(goal => ({
+       id: goal.id,
+       title: goal.title,
+       target: goal.target,
+       current: goal.current,
+       unit: goal.unit,
+       category: goal.category.toLowerCase() as 'weight' | 'workouts' | 'tasks',
+       status: goal.status.toLowerCase() as 'active' | 'completed' | 'paused' | 'cancelled',
+       deadline: goal.deadline || undefined
+     }))
+   }, [goals])
 
-    const totalWorkouts = (workouts || []).length
-    const lastWorkout = (workouts && workouts.length > 0) ? workouts[workouts.length - 1].date : null
-    const workoutTypes = (workouts || []).map((w: WorkoutEntry) => w.type)
-    const mostFrequentWorkout = workoutTypes.length > 0 ? workoutTypes.reduce((a: string, b: string) =>
-      workoutTypes.filter(v => v === a).length >= workoutTypes.filter(v => v === b).length ? a : b
-    ) : null
+   // Transform real analytics data into personal records format
+   const realRecords = useMemo(() => {
+     const records: Array<{
+       id: string
+       type: 'weight' | 'workout' | 'task'
+       title: string
+       value: number | string
+       unit: string
+       date: string
+       description?: string
+     }> = []
 
-    const totalTasks = (tasks || []).length
-    const completedTasks = (tasks || []).filter((t: Task) => Boolean(t.completed)).length
-    const pendingTasks = totalTasks - completedTasks
+     // Weight records
+     if (weightAnalytics?.personalRecords) {
+       const { personalRecords } = weightAnalytics
 
-    return {
-      latestWeight,
-      weightTrend,
-      totalWorkouts,
-      lastWorkout,
-      mostFrequentWorkout,
-      totalTasks,
-      completedTasks,
-      pendingTasks,
-      last7Weights
-    }
-  }, [weights, workouts, tasks])
+       if (personalRecords.heaviest) {
+         records.push({
+           id: 'weight-heaviest',
+           type: 'weight',
+           title: 'Heaviest Weight',
+           value: personalRecords.heaviest,
+           unit: 'lbs',
+           date: 'All time',
+           description: 'Personal best weight'
+         })
+       }
 
-  if (isLoading) {
-    return <LoadingSpinner message="Loading dashboard..." />
+       if (personalRecords.lightest) {
+         records.push({
+           id: 'weight-lightest',
+           type: 'weight',
+           title: 'Lightest Weight',
+           value: personalRecords.lightest,
+           unit: 'lbs',
+           date: 'All time',
+           description: 'Personal best weight'
+         })
+       }
+
+       if (personalRecords.biggestLoss && personalRecords.biggestLoss < 0) {
+         records.push({
+           id: 'weight-biggest-loss',
+           type: 'weight',
+           title: 'Biggest Loss',
+           value: Math.abs(personalRecords.biggestLoss),
+           unit: 'lbs',
+           date: 'All time',
+           description: 'Best weight loss in one period'
+         })
+       }
+     }
+
+     // Workout records
+     if (workoutAnalytics?.personalRecords) {
+       const { personalRecords } = workoutAnalytics
+
+       if (personalRecords.longestWorkout) {
+         records.push({
+           id: 'workout-longest',
+           type: 'workout',
+           title: 'Longest Workout',
+           value: personalRecords.longestWorkout,
+           unit: 'minutes',
+           date: 'All time',
+           description: 'Personal best workout duration'
+         })
+       }
+
+       if (personalRecords.mostWorkoutsInDay) {
+         records.push({
+           id: 'workout-most-in-day',
+           type: 'workout',
+           title: 'Most Workouts in a Day',
+           value: personalRecords.mostWorkoutsInDay,
+           unit: 'count',
+           date: 'All time',
+           description: 'Most productive workout day'
+         })
+       }
+
+       if (personalRecords.longestStreak) {
+         records.push({
+           id: 'workout-longest-streak',
+           type: 'workout',
+           title: 'Longest Workout Streak',
+           value: personalRecords.longestStreak,
+           unit: 'days',
+           date: 'All time',
+           description: 'Longest consecutive workout streak'
+         })
+       }
+     }
+
+     // Task records
+     if (taskAnalytics?.personalRecords) {
+       const { personalRecords } = taskAnalytics
+
+       if (personalRecords.mostTasksCompletedInDay) {
+         records.push({
+           id: 'task-most-in-day',
+           type: 'task',
+           title: 'Most Tasks in a Day',
+           value: personalRecords.mostTasksCompletedInDay,
+           unit: 'count',
+           date: 'All time',
+           description: 'Most productive task day'
+         })
+       }
+
+       if (personalRecords.longestTaskStreak) {
+         records.push({
+           id: 'task-longest-streak',
+           type: 'task',
+           title: 'Longest Task Streak',
+           value: personalRecords.longestTaskStreak,
+           unit: 'days',
+           date: 'All time',
+           description: 'Longest consecutive task completion streak'
+         })
+       }
+     }
+
+     return records
+   }, [weightAnalytics, workoutAnalytics, taskAnalytics])
+
+  const handleTimeRangeChange = (value: string) => {
+    setTimeRange(value as TimeRange)
   }
 
-  if (error) {
-    const message = (error as Error)?.message || 'Failed to load dashboard data. Please try again later.'
-    return <ErrorMessage title="Dashboard Error" message={message} />
-  }
-
-  const exportData = () => {
+  const handleExportData = () => {
     const data = {
       weights,
       workouts,
       tasks,
+      analytics: { weightAnalytics, workoutAnalytics, taskAnalytics, overview },
       exportDate: new Date().toISOString(),
     }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -81,155 +229,203 @@ export default function Dashboard() {
     a.click()
   }
 
-   const {
-     latestWeight,
-     weightTrend,
-     totalWorkouts,
-     lastWorkout,
-     mostFrequentWorkout,
-     totalTasks,
-     completedTasks,
-     pendingTasks,
-     last7Weights
-   } = metrics
+  const handleRefreshData = () => {
+    invalidateAllAnalytics()
+  }
 
-   return (
-     <Box p={{ base: 4, md: 6 }}>
-       <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
-         <Heading as="h1" size="lg" color="white">Fitness Dashboard</Heading>
-         <Box display="flex" gap={3} alignItems="center">
-           <label htmlFor="time-range-select" style={{ display: 'none' }}>Time range</label>
-           <select
-             id="time-range-select"
-             value={timeRange}
-             onChange={handleTimeRangeChange}
-             style={{ background: 'surface.900', color: 'text.inverted', borderColor: 'muted.700', padding: '6px 10px', borderRadius: 6 }}
-           >
-             <option value="7">Last 7 days</option>
-             <option value="30">Last 30 days</option>
-             <option value="90">Last 90 days</option>
-           </select>
-           <Button
-             onClick={exportData}
-             size="sm"
-             colorScheme="teal"
-             variant="outline"
-             aria-label="Export dashboard data"
-           >
-             Export Data
-           </Button>
-         </Box>
-       </Box>
+  if (isLoading) {
+    return <LoadingSpinner message="Loading enhanced dashboard..." />
+  }
 
-       <SimpleGrid columns={gridCols} gap={4}>
-         <Card variant="highlighted" as="section" aria-labelledby="latest-weight-heading">
-           <Text id="latest-weight-heading" fontSize="lg" color="gray.400" mb={2}>Latest Weight</Text>
-           <Text fontSize="3xl" color="primary.500" fontWeight="bold">
-             {latestWeight ? `${latestWeight} lb` : 'No data'}
-           </Text>
-           <Text fontSize="sm" color="gray.500" mt={1}>
-             Last 7 days: {weightTrend >= 0 ? '+' : ''}{weightTrend} lb
-           </Text>
+  if (error) {
+    const message = (error as Error)?.message || 'Failed to load dashboard data. Please try again later.'
+    return <ErrorMessage title="Dashboard Error" message={message} />
+  }
 
-           {last7Weights.length > 0 && (
-             <Box mt={3}>
-               <ChartContainer title="Weight Trend" height={100}>
-                 <ResponsiveContainer width="100%" height="100%">
-                   <LineChart data={last7Weights}>
-                     <CartesianGrid strokeDasharray="3 3" stroke="muted.700" />
-                     <XAxis
-                       dataKey="date"
-                       stroke="#9CA3AF"
-                       fontSize={10}
-                       tickFormatter={(value) => new Date(value).toLocaleDateString()}
-                     />
-                     <YAxis
-                       stroke="#9CA3AF"
-                       fontSize={10}
-                       domain={["dataMin - 2", "dataMax + 2"]}
-                     />
-                     <Tooltip
-                       contentStyle={{
-                         backgroundColor: '#1F2937',
-                         border: '1px solid #374151',
-                         borderRadius: '6px'
-                       }}
-                       labelStyle={{ color: '#F3F4F6' }}
-                     />
-                     <Line
-                       type="monotone"
-                       dataKey="weight"
-                       stroke="primary.500"
-                       strokeWidth={2}
-                       dot={{ fill: 'primary.500', r: 3 }}
-                       activeDot={{ r: 5 }}
-                     />
-                   </LineChart>
-                 </ResponsiveContainer>
-               </ChartContainer>
-             </Box>
-           )}
-         </Card>
+  const getTimeRangeLabel = (range: TimeRange) => {
+    switch (range) {
+      case '7': return 'Last 7 days'
+      case '30': return 'Last 30 days'
+      case '90': return 'Last 90 days'
+      case '365': return 'Last year'
+      case 'all': return 'All time'
+      default: return 'Last 30 days'
+    }
+  }
 
-         <Card as="section" aria-labelledby="workouts-heading">
-           <Text id="workouts-heading" fontSize="lg" color="gray.400" mb={2}>Total Workouts</Text>
-           <Text fontSize="3xl" color="primary.500" fontWeight="bold">
-             {totalWorkouts}
-           </Text>
-           <Text fontSize="sm" color="gray.500" mt={1}>
-             Last: {lastWorkout || 'No data'}
-           </Text>
-           <Text fontSize="sm" color="gray.500">
-             Most frequent: {mostFrequentWorkout || 'No data'}
-           </Text>
-         </Card>
+  return (
+    <Box p={{ base: 4, md: 6 }}>
+      {/* Header */}
+      <VStack gap={6} align="stretch">
+        <HStack justify="space-between" align="center">
+          <HStack gap={3}>
+            <Heading as="h1" size="lg" color="text.primary">
+              Enhanced Fitness Dashboard
+            </Heading>
+            <Badge colorScheme="blue" variant="subtle">
+              Phase 2
+            </Badge>
+          </HStack>
 
-         <Card as="section" aria-labelledby="tasks-heading">
-           <Text id="tasks-heading" fontSize="lg" color="gray.400" mb={2}>Task Progress</Text>
-           <Text fontSize="3xl" color="primary.500" fontWeight="bold">
-             {completedTasks}/{totalTasks}
-           </Text>
-           <Text fontSize="sm" color="gray.500" mt={1}>
-             Pending: {pendingTasks}
-           </Text>
-           {totalTasks > 0 && (
-             <Box mt={3}>
-               <Box bg="surface.800" borderRadius="md" overflow="hidden">
-                 <Box
-                   h={4}
-                   bg="primary.500"
-                   style={{ width: `${(completedTasks / totalTasks) * 100}%` }}
-                   transition="width 0.3s ease"
-                 />
-               </Box>
-               <Text fontSize="xs" color="gray.500" mt={1}>
-                 {Math.round((completedTasks / totalTasks) * 100)}% complete
-               </Text>
-             </Box>
-           )}
-         </Card>
+          <HStack gap={3}>
+            <select
+              value={timeRange}
+              onChange={(e) => handleTimeRangeChange(e.target.value)}
+              style={{
+                background: 'var(--chakra-colors-surface-50)',
+                border: '1px solid var(--chakra-colors-muted-200)',
+                borderRadius: '6px',
+                padding: '8px 12px',
+                fontSize: '14px',
+                maxWidth: '150px',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+              <option value="365">Last year</option>
+              <option value="all">All time</option>
+            </select>
 
-         <Card as="section" aria-labelledby="quick-stats-heading">
-           <Text id="quick-stats-heading" fontSize="lg" color="gray.400" mb={2}>Quick Stats</Text>
-           <Box>
-             <Text fontSize="sm" color="gray.300" mb={1}>
-               🏃‍♂️ Workouts this week: {(workouts || []).filter((w: WorkoutEntry) => {
-                 const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-                 return new Date(w.date) >= weekAgo;
-               }).length}
-             </Text>
-             <Text fontSize="sm" color="gray.300" mb={1}>
-               📋 Tasks completed today: {(tasks || []).filter((t: Task) => {
-                 const today = new Date().toDateString();
-                 return Boolean(t.completed) && new Date(t.createdAt || '').toDateString() === today;
-               }).length}
-             </Text>
-             <Text fontSize="sm" color="gray.300">
-               🎯 Goal streak: 3 days
-             </Text>
-           </Box>
-         </Card>
-       </SimpleGrid>
-     </Box>
-   )
+            <IconButton
+              aria-label="Refresh data"
+              size="sm"
+              variant="outline"
+              bg="surface.50"
+              onClick={handleRefreshData}
+            >
+              <Settings size={16} />
+            </IconButton>
+          </HStack>
+        </HStack>
+
+        {/* Overview Cards */}
+        <SimpleGrid columns={gridCols} gap={4}>
+          <Card as="section" aria-labelledby="overview-weight">
+            <VStack gap={2} align="stretch">
+              <HStack gap={2}>
+                <TrendingUp size={20} color="#3182CE" />
+                <Text id="overview-weight" fontSize="lg" fontWeight="semibold" color="text.primary">
+                  Weight Trend
+                </Text>
+              </HStack>
+              <Text fontSize="2xl" fontWeight="bold" color="primary.500">
+                {overview?.overview?.latestWeight ? `${overview.overview.latestWeight} lbs` : 'No data'}
+              </Text>
+              <Text fontSize="sm" color="text.secondary">
+                {overview?.overview?.weightChange ? (overview.overview.weightChange >= 0 ? '+' : '') + overview.overview.weightChange + ' lbs change' : 'No change data'}
+              </Text>
+            </VStack>
+          </Card>
+
+          <Card as="section" aria-labelledby="overview-workouts">
+            <VStack gap={2} align="stretch">
+              <HStack gap={2}>
+                <Target size={20} color="#38A169" />
+                <Text id="overview-workouts" fontSize="lg" fontWeight="semibold" color="text.primary">
+                  Workouts
+                </Text>
+              </HStack>
+              <Text fontSize="2xl" fontWeight="bold" color="primary.500">
+                {overview?.overview?.totalWorkouts || 0}
+              </Text>
+              <Text fontSize="sm" color="text.secondary">
+                {overview?.overview?.totalDuration || 0} minutes total
+              </Text>
+            </VStack>
+          </Card>
+
+          <Card as="section" aria-labelledby="overview-tasks">
+            <VStack gap={2} align="stretch">
+              <HStack gap={2}>
+                <Award size={20} color="#D69E2E" />
+                <Text id="overview-tasks" fontSize="lg" fontWeight="semibold" color="text.primary">
+                  Tasks
+                </Text>
+              </HStack>
+              <Text fontSize="2xl" fontWeight="bold" color="primary.500">
+                {overview?.overview?.completedTasks || 0}/{overview?.overview?.totalTasks || 0}
+              </Text>
+              <Text fontSize="sm" color="text.secondary">
+                {overview?.overview?.completionRate ? overview.overview.completionRate.toFixed(1) : 0}% complete
+              </Text>
+            </VStack>
+          </Card>
+
+          <Card as="section" aria-labelledby="overview-streak">
+            <VStack gap={2} align="stretch">
+              <Text id="overview-streak" fontSize="lg" fontWeight="semibold" color="text.primary">
+                Current Streaks
+              </Text>
+              <VStack gap={1} align="stretch">
+                <Text fontSize="sm" color="text.secondary">
+                  Workout streak: {workoutAnalytics?.summary?.streak || 0} days
+                </Text>
+                <Text fontSize="sm" color="text.secondary">
+                  Task streak: {taskAnalytics?.personalRecords?.currentTaskStreak || 0} days
+                </Text>
+              </VStack>
+            </VStack>
+          </Card>
+        </SimpleGrid>
+
+        {/* Charts Section */}
+        <VStack gap={6} align="stretch">
+          <Text fontSize="xl" fontWeight="semibold" color="text.primary">
+            Analytics Charts
+          </Text>
+
+          <SimpleGrid columns={{ base: 1, lg: 2 }} gap={6}>
+            {selectedMetrics.includes('weight') && weightAnalytics?.data && (
+              <Card>
+                <InteractiveChart
+                  data={weightAnalytics.data.map(d => ({ date: d.date, weight: d.weight }))}
+                  chartType={chartType}
+                  title="Weight Trend"
+                  height={300}
+                  showMovingAverage={showMovingAverage}
+                  showTrendLine={showTrendLine}
+                  movingAverageData={weightAnalytics.movingAverages}
+                  formatXAxis={(value) => new Date(value).toLocaleDateString()}
+                  formatYAxis={(value) => `${value} lbs`}
+                />
+              </Card>
+            )}
+
+            {selectedMetrics.includes('workouts') && workoutAnalytics?.data && (
+              <Card>
+                <InteractiveChart
+                  data={workoutAnalytics.data.map(d => ({ date: d.date, duration: d.duration }))}
+                  chartType={chartType}
+                  title="Workout Duration"
+                  height={300}
+                  showMovingAverage={showMovingAverage}
+                  showTrendLine={showTrendLine}
+                  formatXAxis={(value) => new Date(value).toLocaleDateString()}
+                  formatYAxis={(value) => `${value} min`}
+                />
+              </Card>
+            )}
+          </SimpleGrid>
+        </VStack>
+
+         {/* Goals Section */}
+         <VStack gap={4} align="stretch">
+           <Text fontSize="xl" fontWeight="semibold" color="text.primary">
+             Goals & Progress
+           </Text>
+           <GoalProgressIndicator goals={realGoals} />
+         </VStack>
+
+         {/* Personal Records Section */}
+         <VStack gap={4} align="stretch">
+           <Text fontSize="xl" fontWeight="semibold" color="text.primary">
+             Personal Records
+           </Text>
+           <PersonalRecords records={realRecords} />
+         </VStack>
+      </VStack>
+    </Box>
+  )
 }
