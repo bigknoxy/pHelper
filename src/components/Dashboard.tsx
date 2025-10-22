@@ -49,10 +49,10 @@ export default function Dashboard() {
    const { data: goals, isLoading: goalsLoading, error: goalsError } = useGoalAnalytics()
    const { invalidateAllAnalytics } = useInvalidateAnalytics()
 
-  // Legacy hooks for basic data (keeping for compatibility)
-  const { weights = [], isLoading: weightsLoading } = useWeights()
-  const { workouts = [], isLoading: workoutsLoading } = useWorkouts()
-  const { tasks = [], isLoading: tasksLoading } = useTasks()
+   // Legacy hooks for basic data (keeping for compatibility)
+   const { isLoading: weightsLoading } = useWeights()
+   const { isLoading: workoutsLoading } = useWorkouts()
+   const { isLoading: tasksLoading } = useTasks()
 
    const isLoading = weightsLoading || workoutsLoading || tasksLoading || weightLoading || workoutLoading || taskLoading || overviewLoading || goalsLoading
    const error = weightError || workoutError || taskError || overviewError || goalsError
@@ -352,7 +352,7 @@ export default function Dashboard() {
                   showMovingAverage={showMovingAverage}
                   showTrendLine={showTrendLine}
                   movingAverageData={weightAnalytics.movingAverages}
-                  formatXAxis={(value) => new Date(value).toLocaleDateString()}
+                   formatXAxis={(value) => new Date(value as string).toLocaleDateString()}
                   formatYAxis={(value) => `${value} lbs`}
                 />
               </Card>
@@ -367,7 +367,7 @@ export default function Dashboard() {
                   height={300}
                   showMovingAverage={showMovingAverage}
                   showTrendLine={showTrendLine}
-                  formatXAxis={(value) => new Date(value).toLocaleDateString()}
+                   formatXAxis={(value) => new Date(value as string).toLocaleDateString()}
                   formatYAxis={(value) => `${value} min`}
                 />
               </Card>

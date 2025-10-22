@@ -16,7 +16,7 @@ import GoalProgressIndicator from "./charts/GoalProgressIndicator";
 import PersonalRecords from "./charts/PersonalRecords";
 export default function Dashboard() {
     // Dashboard store for state management
-    const { timeRange, chartType, selectedMetrics, showMovingAverage, showTrendLine, showPersonalRecords, setTimeRange, setChartType, toggleMetric, resetFilters } = useDashboardStore();
+    const { timeRange, chartType, selectedMetrics, showMovingAverage, showTrendLine, setTimeRange } = useDashboardStore();
     // Analytics hooks
     const { data: weightAnalytics, isLoading: weightLoading, error: weightError } = useWeightAnalytics(timeRange);
     const { data: workoutAnalytics, isLoading: workoutLoading, error: workoutError } = useWorkoutAnalytics(timeRange);
@@ -25,9 +25,9 @@ export default function Dashboard() {
     const { data: goals, isLoading: goalsLoading, error: goalsError } = useGoalAnalytics();
     const { invalidateAllAnalytics } = useInvalidateAnalytics();
     // Legacy hooks for basic data (keeping for compatibility)
-    const { weights = [], isLoading: weightsLoading } = useWeights();
-    const { workouts = [], isLoading: workoutsLoading } = useWorkouts();
-    const { tasks = [], isLoading: tasksLoading } = useTasks();
+    const { isLoading: weightsLoading } = useWeights();
+    const { isLoading: workoutsLoading } = useWorkouts();
+    const { isLoading: tasksLoading } = useTasks();
     const isLoading = weightsLoading || workoutsLoading || tasksLoading || weightLoading || workoutLoading || taskLoading || overviewLoading || goalsLoading;
     const error = weightError || workoutError || taskError || overviewError || goalsError;
     const gridCols = useBreakpointValue({ base: 1, sm: 2, md: 3, lg: 4 });
@@ -154,21 +154,6 @@ export default function Dashboard() {
     const handleTimeRangeChange = (value) => {
         setTimeRange(value);
     };
-    const handleExportData = () => {
-        const data = {
-            weights,
-            workouts,
-            tasks,
-            analytics: { weightAnalytics, workoutAnalytics, taskAnalytics, overview },
-            exportDate: new Date().toISOString(),
-        };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `fitness-data-${new Date().toISOString().slice(0, 10)}.json`;
-        a.click();
-    };
     const handleRefreshData = () => {
         invalidateAllAnalytics();
     };
@@ -179,16 +164,6 @@ export default function Dashboard() {
         const message = error?.message || 'Failed to load dashboard data. Please try again later.';
         return _jsx(ErrorMessage, { title: "Dashboard Error", message: message });
     }
-    const getTimeRangeLabel = (range) => {
-        switch (range) {
-            case '7': return 'Last 7 days';
-            case '30': return 'Last 30 days';
-            case '90': return 'Last 90 days';
-            case '365': return 'Last year';
-            case 'all': return 'All time';
-            default: return 'Last 30 days';
-        }
-    };
     return (_jsx(Box, { p: { base: 4, md: 6 }, children: _jsxs(VStack, { gap: 6, align: "stretch", children: [_jsxs(HStack, { justify: "space-between", align: "center", children: [_jsxs(HStack, { gap: 3, children: [_jsx(Heading, { as: "h1", size: "lg", color: "text.primary", children: "Enhanced Fitness Dashboard" }), _jsx(Badge, { colorScheme: "blue", variant: "subtle", children: "Phase 2" })] }), _jsxs(HStack, { gap: 3, children: [_jsxs("select", { value: timeRange, onChange: (e) => handleTimeRangeChange(e.target.value), style: {
                                         background: 'var(--chakra-colors-surface-50)',
                                         border: '1px solid var(--chakra-colors-muted-200)',
