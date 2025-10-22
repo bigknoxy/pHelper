@@ -13,10 +13,8 @@ export default function TopBarAuth() {
   }
 
   return (
-    <div>
-      <a href="/login">Login</a>
-      {' | '}
-      <a href="/register">Register</a>
-    </div>
+    // When not authenticated we no longer show login/register links because the
+    // app will render the login form by default. Keep TopBar minimal.
+    <div />
   )
 }

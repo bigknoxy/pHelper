@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { setToken as tokenSet, getToken as tokenGet, clearToken } from '../api/token'
 import { login as apiLogin, register as apiRegister } from '../api/auth'
 import { addTask } from '../api/tasks'
@@ -39,6 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [migrated, setMigrated] = useState<boolean>(safeGet('migrationComplete') === 'true')
 
   useEffect(() => {
+    // determine auth status on mount; show loading until token check completes
+    setLoading(true)
     try {
       const t = tokenGet()
       if (t) {
@@ -47,6 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       // ignore
+    } finally {
+      setLoading(false)
     }
   }, [])
 
@@ -82,6 +86,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       tokenSet(jwt, remember)
       setTokenState(jwt)
       setUserId('me')
+      // Only redirect if remember=true to avoid losing in-memory token on page reload
+      // When remember=false, let React state update naturally
+      try {
+        if (typeof window !== 'undefined' && remember) {
+          window.location.href = '/'
+        }
+      } catch {
+        // ignore
+      }
       if (!safeGet('migrationComplete')) {
         if (window.confirm('Import your local data to the backend?')) {
           await migrateLocalData()
@@ -109,6 +122,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       tokenSet(jwt, remember)
       setTokenState(jwt)
       setUserId('me')
+      // Only redirect if remember=true to avoid losing in-memory token on page reload
+      // When remember=false, let React state update naturally
+      try {
+        if (typeof window !== 'undefined' && remember) {
+          window.location.href = '/'
+        }
+      } catch {
+        // ignore
+      }
       if (!safeGet('migrationComplete')) {
         if (window.confirm('Import your local data to the backend?')) {
           await migrateLocalData()

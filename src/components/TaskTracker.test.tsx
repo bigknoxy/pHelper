@@ -3,7 +3,8 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import TaskTracker from "./TaskTracker";
 import * as apiTasks from '../api/tasks';
 import { AuthContext } from '../context/AuthContext';
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { ChakraProvider } from '@chakra-ui/react';
+import theme from '../theme';
 
 // Helper to clear localStorage before each test
 beforeEach(() => {
@@ -44,7 +45,7 @@ describe("TaskTracker", () => {
     };
     return render(
       <AuthContext.Provider value={mockAuth}>
-        <ChakraProvider value={defaultSystem}>{ui}</ChakraProvider>
+        <ChakraProvider value={theme}>{ui}</ChakraProvider>
       </AuthContext.Provider>
     );
   }
@@ -75,12 +76,12 @@ describe("TaskTracker", () => {
       target: { value: "Walk dog" },
     });
     fireEvent.click(await screen.findByRole("button", { name: /add task/i }));
-    const checkbox = await screen.findByRole("checkbox");
-    expect(checkbox).not.toBeChecked();
-    fireEvent.click(checkbox);
-    await waitFor(() => expect(checkbox).toBeChecked());
-    fireEvent.click(checkbox);
-    await waitFor(() => expect(checkbox).not.toBeChecked());
+     const button = await screen.findByRole("button", { name: /mark "walk dog" as complete/i });
+     expect(button).toBeInTheDocument();
+     fireEvent.click(button);
+     await waitFor(() => expect(button).toHaveAttribute('aria-label', 'Mark "Walk dog" as incomplete'));
+     fireEvent.click(button);
+     await waitFor(() => expect(button).toHaveAttribute('aria-label', 'Mark "Walk dog" as complete'));
   });
 
   it("deletes a task", async () => {

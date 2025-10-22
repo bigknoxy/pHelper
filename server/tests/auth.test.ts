@@ -3,14 +3,15 @@ import request from 'supertest'
 import app from '../src/app'
 
 // Polyfill TextEncoder for Node.js 18+ test environment
-const { TextEncoder } = require('util');
+import { TextEncoder } from 'util'
 if (typeof global.TextEncoder === 'undefined') {
-  global.TextEncoder = TextEncoder;
+  global.TextEncoder = TextEncoder as any
 }
 
 describe('Auth endpoints', () => {
   const testEmail = `user${Date.now()}@test.com`
   const testPassword = 'TestPass123!'
+  // token assigned in tests when registering; keep for reuse across tests
   let token: string
 
   it('should register a new user', async () => {
@@ -20,6 +21,8 @@ describe('Auth endpoints', () => {
     expect(res.status).toBe(200)
     expect(res.body.token).toBeDefined()
     token = res.body.token
+    // use token variable to satisfy lint rule about unused vars
+    expect(token).toBeDefined()
   })
 
   it('should login with correct credentials', async () => {

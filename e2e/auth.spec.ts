@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { waitForHealth, waitForFrontend } from './utils'
+
+// Increase timeout for stability when waiting for services
+test.setTimeout(180000);
+
 
 test.describe('Authentication Flow', () => {
-  test('should register, login, and verify auth state', async ({ page }) => {
+  test('should register, login, and verify auth state', async ({ page, request }) => {
     const timestamp = Date.now();
     const email = `smoke+${timestamp}@example.com`;
     const password = 'testpassword123';
@@ -10,24 +15,26 @@ test.describe('Authentication Flow', () => {
     page.on('console', msg => console.log('PAGE LOG:', msg.text()));
     page.on('pageerror', err => console.log('PAGE ERROR:', err && err.message));
 
+    // Wait for backend and frontend to be ready before navigating
+    await waitForHealth(request);
+    await waitForFrontend(request);
+
     // Prevent modal confirm from blocking tests and mark migration done
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.evaluate(() => {
       // stub window.confirm used by migration prompt
-      // eslint-disable-next-line no-global-assign
-      // @ts-ignore
-      window.confirm = () => false;
+       
+      // In the browser context plain window.confirm works. Use safer cast to avoid `any`.
+      (window as unknown as { confirm: () => boolean }).confirm = () => false;
       try {
         localStorage.setItem('migrationComplete', 'true');
-      } catch (e) {
+      } catch {
         // ignore
       }
     });
 
     // ensure a clean start (no lingering jwt)
-    await page.evaluate(() => {
-      try { localStorage.removeItem('jwt'); } catch (e) { /* ignore */ }
-    });
+    await page.evaluate(() => { try { localStorage.removeItem('jwt'); } catch { /* ignore */ } });
 
     // Register - navigate directly to the register route to avoid relying on TopBar link
     await page.goto('/register', { waitUntil: 'networkidle' });
@@ -36,20 +43,15 @@ test.describe('Authentication Flow', () => {
     const bodyHtml = await page.evaluate(() => document.body.innerHTML);
     console.log('BODY HTML (preview):', bodyHtml.slice(0, 2000));
     await page.waitForSelector('form[aria-label="register-form"]', { timeout: 60000 });
-    await page.fill('input[aria-label="email"]', email);
-    await page.fill('input[aria-label="password"]', password);
-    // Wait for the register network response and assert token presence
-    const [response] = await Promise.all([
-      page.waitForResponse(resp => resp.url().includes('/api/auth/register') && resp.status() === 200, { timeout: 60000 }),
-      page.click('button[aria-label="register button"]'),
-    ])
-    let registerResponseBody = null as any
-    try {
-      registerResponseBody = await response.json()
-    } catch (e) {
-      console.log('Failed to parse register response JSON', e)
-    }
-    console.log('REGISTER RESPONSE', response.status(), registerResponseBody)
+     await page.fill('input[aria-label="email"]', email);
+     await page.fill('input[aria-label="password"]', password);
+     await page.fill('input[aria-label="confirm password"]', password);
+     // Wait for the register network response and assert token presence
+     await Promise.all([
+       page.waitForResponse(resp => resp.url().includes('/api/auth/register') && resp.status() === 200, { timeout: 60000 }),
+       // match by aria-label or visible text as a fallback
+       page.click('button[aria-label="register button"], button:has-text("Create account")'),
+     ])
 
 
     // Check if TopBar shows logout (indicating success)
@@ -62,9 +64,9 @@ test.describe('Authentication Flow', () => {
     console.log('LOCALSTORAGE jwt after register:', regJwt ? '[REDACTED]' : null);
     expect(regJwt).toBeTruthy();
 
-    // Logout and go to login
+    // Logout and go to login (TopBar no longer shows links; navigate directly)
     await page.click('button:has-text("Logout")');
-    await page.click('text=Login');
+    await page.goto('/login', { waitUntil: 'networkidle' });
     await page.waitForSelector('form[aria-label="login-form"]', { timeout: 60000 });
 
     // Login
@@ -74,7 +76,7 @@ test.describe('Authentication Flow', () => {
     // Make login persist token by checking "Remember me"
     await page.check('input[aria-label="remember me"]');
 
-    const [loginResponse] = await Promise.all([
+    await Promise.all([
       page.waitForResponse(resp => resp.url().includes('/api/auth/login') && resp.status() === 200, { timeout: 60000 }),
       page.click('button[type="submit"]'),
     ]);
@@ -89,20 +91,22 @@ test.describe('Authentication Flow', () => {
     // Verify login success
     await expect(page.locator('button:has-text("Logout")')).toBeVisible();
 
-    // Optionally, navigate to dashboard and create a task
-    const postLoginBody = await page.evaluate(() => document.body.innerHTML)
-    console.log('BODY AFTER LOGIN:', postLoginBody.slice(0, 2000))
-    // Try to click dashboard if present
-    if (await page.locator('button:has-text("Dashboard")').count() > 0) {
-      await page.click('button:has-text("Dashboard")')
-      await page.fill('input[placeholder*="task"]', 'Test Task')
-      await page.click('button:has-text("Add")')
-      await expect(page.locator('text=Test Task')).toBeVisible()
-    } else {
-      console.log('Dashboard button not present; skipping task creation')
-    }
+     // Optionally, navigate to tasks tab and create a task
+     const postLoginBody = await page.evaluate(() => document.body.innerHTML)
+     console.log('BODY AFTER LOGIN:', postLoginBody.slice(0, 2000))
+     // Try to click tasks tab if present
+     if (await page.locator('button:has-text("Tasks")').count() > 0) {
+       await page.click('button:has-text("Tasks")')
+       // Wait for the task input to be visible after tab switch
+       await page.waitForSelector('input[placeholder*="task"]', { timeout: 10000 })
+       await page.fill('input[placeholder*="task"]', 'Test Task')
+       await page.click('button:has-text("Add Task")')
+       await expect(page.locator('text=Test Task')).toBeVisible()
+     } else {
+       console.log('Tasks button not present; skipping task creation')
+     }
 
     // cleanup persisted token
-    await page.evaluate(() => { try { localStorage.removeItem('jwt'); } catch (e) { /* ignore */ } });
+    await page.evaluate(() => { try { localStorage.removeItem('jwt'); } catch { /* ignore */ } });
   });
 });

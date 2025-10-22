@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Box, Button, Heading, Text, Stack } from '@chakra-ui/react';
-import { Input, List } from '@chakra-ui/react';
+import { Box, Text, Stack } from '@chakra-ui/react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { useAuth } from '../context/AuthContext';
 import { getWeights, addWeight, WeightEntry } from '../api/weights';
+import FormInput from './shared/FormInput';
+import Button from './shared/Button';
 
 export default function WeightTracker() {
   const { token } = useAuth();
@@ -40,48 +41,77 @@ export default function WeightTracker() {
         <Text color="red.400">Please log in to use the Weight Tracker.</Text>
       ) : (
         <>
-          <Heading size="md" mb={4}>Log Your Weight</Heading>
-          <Stack gap={4} align="stretch">
-            <label>Date
-              <Input type="date" value={date} aria-label="date" onChange={e => setDate(e.target.value)} />
-            </label>
-            <label>Weight (lb)
-              <Input type="number" value={weight} aria-label="weight" onChange={e => setWeight(e.target.value)} />
-            </label>
-            <Button
-              colorScheme="teal"
-              variant="solid"
-              size="md"
-              borderRadius="md"
-              boxShadow="md"
-              fontWeight="bold"
-              _hover={{ bg: "teal.300", boxShadow: "lg", cursor: "pointer" }}
-              loading={loading}
-              onClick={handleAddEntry}
-            >
-              Add Entry
-            </Button>
-          </Stack>
+          <Box as="form" role="form" aria-labelledby="weight-form-heading"
+            onSubmit={e => {
+              e.preventDefault();
+              handleAddEntry();
+            }}
+          >
+            <Text id="weight-form-heading" fontSize="lg" fontWeight="bold" mb={4}>Log Your Weight</Text>
+            <Stack gap={4} align="stretch">
+              <FormInput
+                label="Date"
+                type="date"
+                value={date}
+                onChange={setDate}
+                required
+                aria-label="Weight entry date"
+              />
+              <FormInput
+                label="Weight (lb)"
+                type="number"
+                value={weight}
+                onChange={setWeight}
+                placeholder="Enter your weight in pounds"
+                required
+                aria-label="Weight in pounds"
+              />
+              <Button
+                type="submit"
+                colorScheme="teal"
+                variant="solid"
+                size="md"
+                loading={loading}
+                aria-label="Add weight entry"
+              >
+                Add Entry
+              </Button>
+            </Stack>
+          </Box>
           {weightEntries.length > 0 && (
-            <Box mt={8}>
-              <Heading size="sm" mb={2}>History</Heading>
-              <List.Root gap="2">
+            <Box mt={8} role="region" aria-labelledby="weight-history-heading">
+              <Text id="weight-history-heading" fontSize="lg" fontWeight="bold" mb={4}>Weight History</Text>
+              <Stack gap={2} as="ul" listStyleType="none" mb={6}>
                 {weightEntries.map((entry, idx) => (
-                  <List.Item key={entry.id || idx}>
-                    <Text>{entry.date}: {entry.weight} lb</Text>
-                  </List.Item>
+                  <Box key={entry.id || idx} as="li" p={2} borderWidth="1px" borderRadius="md" borderColor="gray.600" bg="surface.800">
+                    <Text>{new Date(entry.date).toLocaleDateString()}: {entry.weight} lb</Text>
+                  </Box>
                 ))}
-              </List.Root>
-              <Heading size="sm" mb={2}>Trend</Heading>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={weightEntries}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="weight" stroke="#3182ce" />
-                </LineChart>
-              </ResponsiveContainer>
+              </Stack>
+              <Text fontSize="lg" fontWeight="bold" mb={4}>Weight Trend</Text>
+              <Box borderWidth="1px" borderRadius="md" borderColor="gray.600" p={4} bg="surface.800">
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={weightEntries}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#4B5563" />
+                    <XAxis
+                      dataKey="date"
+                      stroke="#9CA3AF"
+                      fontSize={12}
+                      tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                    />
+                    <YAxis stroke="#9CA3AF" fontSize={12} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1F2937',
+                        border: '1px solid #374151',
+                        borderRadius: '6px',
+                        color: '#F3F4F6'
+                      }}
+                    />
+                    <Line type="monotone" dataKey="weight" stroke="#0bc5ea" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Box>
             </Box>
           )}
         </>
