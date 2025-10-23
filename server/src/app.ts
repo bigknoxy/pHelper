@@ -44,12 +44,22 @@ import workoutRoutes from './routes/workouts'
 import taskRoutes from './routes/tasks'
 import goalRoutes from './routes/goals'
 import analyticsRoutes from './routes/analytics'
+import weightGoalsRoutes from './routes/weightGoals'
+import bmiRoutes from './routes/bmi'
+import progressPhotosRoutes from './routes/progressPhotos'
+import bodyCompositionRoutes from './routes/bodyComposition'
+import weightAnalyticsRoutes from './routes/weightAnalytics'
 
 app.use('/api/weights', weightRoutes)
 app.use('/api/workouts', workoutRoutes)
 app.use('/api/tasks', taskRoutes)
 app.use('/api/goals', goalRoutes)
 app.use('/api/analytics', analyticsRoutes)
+app.use('/api/weight-goals', weightGoalsRoutes)
+app.use('/api/bmi', bmiRoutes)
+app.use('/api/progress-photos', progressPhotosRoutes)
+app.use('/api/body-composition', bodyCompositionRoutes)
+app.use('/api/weight-analytics', weightAnalyticsRoutes)
 
 import { errorHandler } from './middleware/errorHandler'
 app.use(errorHandler)

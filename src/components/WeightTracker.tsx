@@ -5,6 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import { getWeights, addWeight, WeightEntry } from '../api/weights';
 import FormInput from './shared/FormInput';
 import Button from './shared/Button';
+import WeightGoalWizard from './weight/WeightGoalWizard';
+import GoalProgressTracker from './weight/GoalProgressTracker';
+import BMIIndicator from './weight/BMIIndicator';
 
 export default function WeightTracker() {
   const { token } = useAuth();
@@ -76,9 +79,18 @@ export default function WeightTracker() {
               >
                 Add Entry
               </Button>
-            </Stack>
-          </Box>
-          {weightEntries.length > 0 && (
+             </Stack>
+           </Box>
+<Box mt={8}>
+              <WeightGoalWizard />
+            </Box>
+            <Box mt={8}>
+              <GoalProgressTracker />
+            </Box>
+            <Box mt={8}>
+              <BMIIndicator />
+            </Box>
+           {weightEntries.length > 0 && (
             <Box mt={8} role="region" aria-labelledby="weight-history-heading">
               <Text id="weight-history-heading" fontSize="lg" fontWeight="bold" mb={4}>Weight History</Text>
               <Stack gap={2} as="ul" listStyleType="none" mb={6}>
