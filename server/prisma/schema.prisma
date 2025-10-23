@@ -11,15 +11,18 @@ generator client {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  passwordHash String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  weights      WeightEntry[]
-  workouts     Workout[]
-  tasks        Task[]
-  goals        Goal[]
+  id               String            @id @default(uuid())
+  email            String            @unique
+  passwordHash     String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  weights          WeightEntry[]
+  workouts         Workout[]
+  tasks            Task[]
+  goals            Goal[]
+  weightGoals      WeightGoal[]
+  progressPhotos   ProgressPhoto[]
+  bodyCompositions BodyComposition[]
 }
 
 model WeightEntry {
@@ -71,6 +74,65 @@ model Goal {
   deadline    DateTime?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+}
+
+model WeightGoal {
+  id          String            @id @default(uuid())
+  user        User              @relation(fields: [userId], references: [id])
+  userId      String
+  goalWeight  Float
+  targetDate  DateTime
+  milestones  WeightMilestone[]
+  bmiTracking Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([targetDate])
+}
+
+model WeightMilestone {
+  id              String     @id @default(uuid())
+  weightGoal      WeightGoal @relation(fields: [weightGoalId], references: [id])
+  weightGoalId    String
+  milestoneWeight Float
+  targetDate      DateTime
+  achieved        Boolean    @default(false)
+  achievedDate    DateTime?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([weightGoalId])
+  @@index([targetDate])
+}
+
+model ProgressPhoto {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  date      DateTime
+  photoUrl  String
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+}
+
+model BodyComposition {
+  id           String   @id @default(uuid())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  date         DateTime
+  bodyFat      Float?
+  muscleMass   Float?
+  measurements Json? // For storing various measurements like waist, chest, etc.
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
 }
 
 enum TaskStatus {
