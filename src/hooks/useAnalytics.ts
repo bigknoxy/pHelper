@@ -127,7 +127,7 @@ export const useWeightAnalytics = (timeRange?: TimeRange, startDate?: string, en
   const { userId } = useAuth()
 
   return useQuery({
-    queryKey: ['weightAnalytics', range, startDate, endDate],
+    queryKey: ['weightAnalytics', userId, range, startDate, endDate],
     queryFn: () => fetchWeightAnalytics(range, startDate, endDate),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -143,7 +143,7 @@ export const useWorkoutAnalytics = (timeRange?: TimeRange, startDate?: string, e
   const { userId } = useAuth()
 
   return useQuery({
-    queryKey: ['workoutAnalytics', range, startDate, endDate],
+    queryKey: ['workoutAnalytics', userId, range, startDate, endDate],
     queryFn: () => fetchWorkoutAnalytics(range, startDate, endDate),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -159,7 +159,7 @@ export const useTaskAnalytics = (timeRange?: TimeRange, startDate?: string, endD
   const { userId } = useAuth()
 
   return useQuery({
-    queryKey: ['taskAnalytics', range, startDate, endDate],
+    queryKey: ['taskAnalytics', userId, range, startDate, endDate],
     queryFn: () => fetchTaskAnalytics(range, startDate, endDate),
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
@@ -175,7 +175,7 @@ export const useDashboardOverview = (timeRange?: TimeRange) => {
   const { userId } = useAuth()
 
   return useQuery({
-    queryKey: ['dashboardOverview', range],
+    queryKey: ['dashboardOverview', userId, range],
     queryFn: () => fetchDashboardOverview(range),
     staleTime: 2 * 60 * 1000, // 2 minutes (more frequent for overview)
     gcTime: 5 * 60 * 1000,
@@ -196,25 +196,25 @@ export const usePrefetchAnalytics = () => {
 
     // Prefetch all analytics data for current time range
     queryClient.prefetchQuery({
-      queryKey: ['weightAnalytics', timeRange],
+      queryKey: ['weightAnalytics', userId, timeRange],
       queryFn: () => fetchWeightAnalytics(timeRange),
       staleTime: 5 * 60 * 1000,
     })
 
     queryClient.prefetchQuery({
-      queryKey: ['workoutAnalytics', timeRange],
+      queryKey: ['workoutAnalytics', userId, timeRange],
       queryFn: () => fetchWorkoutAnalytics(timeRange),
       staleTime: 5 * 60 * 1000,
     })
 
     queryClient.prefetchQuery({
-      queryKey: ['taskAnalytics', timeRange],
+      queryKey: ['taskAnalytics', userId, timeRange],
       queryFn: () => fetchTaskAnalytics(timeRange),
       staleTime: 5 * 60 * 1000,
     })
 
     queryClient.prefetchQuery({
-      queryKey: ['dashboardOverview', timeRange],
+      queryKey: ['dashboardOverview', userId, timeRange],
       queryFn: () => fetchDashboardOverview(timeRange),
       staleTime: 2 * 60 * 1000,
     })
