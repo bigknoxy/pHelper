@@ -1,5 +1,6 @@
 // Prisma schema for pHelper persistent storage
 // See design/persistence-postgres.md for details
+// Updated for Phase 4
 
 datasource db {
   provider = "postgresql"
@@ -23,6 +24,8 @@ model User {
   weightGoals      WeightGoal[]
   progressPhotos   ProgressPhoto[]
   bodyCompositions BodyComposition[]
+  workoutTemplates WorkoutTemplate[]
+  personalRecords  PersonalRecord[]
 }
 
 model WeightEntry {
@@ -37,15 +40,25 @@ model WeightEntry {
 }
 
 model Workout {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  date      DateTime
-  type      String
-  duration  Int
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String           @id @default(uuid())
+  user       User             @relation(fields: [userId], references: [id])
+  userId     String
+  date       DateTime
+  type       String // Legacy field for backward compatibility
+  duration   Int // Total duration in minutes
+  notes      String?
+  template   WorkoutTemplate? @relation(fields: [templateId], references: [id])
+  templateId String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  // Relations
+  exercises       WorkoutExercise[]
+  personalRecords PersonalRecord[]
+
+  @@index([userId])
+  @@index([date])
+  @@index([templateId])
 }
 
 model Task {
@@ -152,4 +165,160 @@ enum GoalStatus {
   COMPLETED
   PAUSED
   CANCELLED
+}
+
+enum ExerciseCategory {
+  STRENGTH
+  CARDIO
+  FLEXIBILITY
+  BALANCE
+  FUNCTIONAL
+  SPORTS
+}
+
+enum MuscleGroup {
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  FOREARMS
+  CORE
+  QUADRICEPS
+  HAMSTRINGS
+  GLUTES
+  CALVES
+  FULL_BODY
+}
+
+enum ExerciseDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum RecordType {
+  MAX_WEIGHT
+  MAX_REPS
+  MAX_SETS
+  PERSONAL_BEST
+  WORKOUT_VOLUME
+  EXERCISE_FREQUENCY
+}
+
+model Exercise {
+  id           String             @id @default(uuid())
+  name         String             @unique
+  description  String?
+  instructions String?
+  category     ExerciseCategory
+  muscleGroups MuscleGroup[]
+  equipment    String[] // Array of equipment needed
+  difficulty   ExerciseDifficulty @default(BEGINNER)
+  isActive     Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  // Relations
+  workoutExercises WorkoutExercise[]
+  personalRecords  PersonalRecord[]
+  workoutTemplates WorkoutTemplateExercise[]
+
+  @@index([category])
+  @@index([muscleGroups])
+  @@index([difficulty])
+}
+
+model WorkoutTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  category    String // e.g., "Upper Body", "Full Body", "HIIT"
+  isPublic    Boolean  @default(false)
+  createdBy   String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user      User                      @relation(fields: [createdBy], references: [id])
+  exercises WorkoutTemplateExercise[]
+  workouts  Workout[]
+
+  @@index([createdBy])
+  @@index([isPublic])
+  @@index([category])
+}
+
+model WorkoutTemplateExercise {
+  id                String          @id @default(uuid())
+  workoutTemplate   WorkoutTemplate @relation(fields: [workoutTemplateId], references: [id], onDelete: Cascade)
+  workoutTemplateId String
+  exercise          Exercise        @relation(fields: [exerciseId], references: [id])
+  exerciseId        String
+  sets              Int             @default(1)
+  reps              Int? // null for cardio/timed exercises
+  weight            Float? // null for bodyweight exercises
+  duration          Int? // in seconds for cardio exercises
+  restTime          Int? // in seconds
+  order             Int // order in the workout
+  notes             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([workoutTemplateId, exerciseId, order])
+  @@index([workoutTemplateId])
+  @@index([exerciseId])
+}
+
+model WorkoutExercise {
+  id         String   @id @default(uuid())
+  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  workoutId  String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+  exerciseId String
+  sets       Int      @default(1)
+  reps       Int? // null for cardio/timed exercises
+  weight     Float? // null for bodyweight exercises
+  duration   Int? // in seconds for cardio exercises
+  restTime   Int? // in seconds
+  order      Int // order in the workout
+  notes      String?
+  distance   Float? // in kilometers for cardio exercises
+  calories   Int? // estimated calories burned for cardio exercises
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  personalRecords PersonalRecord[]
+
+  @@unique([workoutId, exerciseId, order])
+  @@index([workoutId])
+  @@index([exerciseId])
+}
+
+model PersonalRecord {
+  id                String           @id @default(uuid())
+  user              User             @relation(fields: [userId], references: [id])
+  userId            String
+  recordType        RecordType
+  value             Float // The record value (weight, reps, etc.)
+  date              DateTime
+  exercise          Exercise         @relation(fields: [exerciseId], references: [id])
+  exerciseId        String
+  workout           Workout?         @relation(fields: [workoutId], references: [id])
+  workoutId         String?
+  workoutExercise   WorkoutExercise? @relation(fields: [workoutExerciseId], references: [id])
+  workoutExerciseId String?
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@unique([userId, recordType, exerciseId, date])
+  @@index([userId])
+  @@index([recordType])
+  @@index([exerciseId])
+  @@index([date])
+  @@index([workoutId])
+  @@index([workoutExerciseId])
 }

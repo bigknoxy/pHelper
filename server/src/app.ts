@@ -49,6 +49,10 @@ import bmiRoutes from './routes/bmi'
 import progressPhotosRoutes from './routes/progressPhotos'
 import bodyCompositionRoutes from './routes/bodyComposition'
 import weightAnalyticsRoutes from './routes/weightAnalytics'
+import exerciseRoutes from './routes/exercises'
+import workoutTemplateRoutes from './routes/workoutTemplates'
+import personalRecordRoutes from './routes/personalRecords'
+import enhancedAnalyticsRoutes from './routes/enhancedAnalytics'
 
 app.use('/api/weights', weightRoutes)
 app.use('/api/workouts', workoutRoutes)
@@ -60,6 +64,10 @@ app.use('/api/bmi', bmiRoutes)
 app.use('/api/progress-photos', progressPhotosRoutes)
 app.use('/api/body-composition', bodyCompositionRoutes)
 app.use('/api/weight-analytics', weightAnalyticsRoutes)
+app.use('/api/exercises', exerciseRoutes)
+app.use('/api/workout-templates', workoutTemplateRoutes)
+app.use('/api/personal-records', personalRecordRoutes)
+app.use('/api/enhanced-analytics', enhancedAnalyticsRoutes)
 
 import { errorHandler } from './middleware/errorHandler'
 app.use(errorHandler)

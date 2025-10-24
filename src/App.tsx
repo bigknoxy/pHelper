@@ -5,6 +5,10 @@ import WeightTracker from './components/WeightTracker';
 import WorkoutLogger from './components/WorkoutLogger';
 import TaskTracker from './components/TaskTracker';
 import Dashboard from './components/Dashboard';
+import ExerciseLibrary from './components/ExerciseLibrary';
+
+import WorkoutTemplates from './components/WorkoutTemplates';
+import PerformanceAnalytics from './components/PerformanceAnalytics';
 import TopBarAuth from './components/TopBarAuth';
 import LoginForm from './components/Auth/LoginForm';
 import RegisterForm from './components/Auth/RegisterForm';
@@ -17,6 +21,9 @@ function App() {
     { label: "Dashboard", value: "dashboard" },
     { label: "Weight", value: "weight" },
     { label: "Workouts", value: "workouts" },
+    { label: "Exercises", value: "exercises" },
+    { label: "Templates", value: "templates" },
+    { label: "Analytics", value: "analytics" },
     { label: "Tasks", value: "tasks" },
   ];
   const [selected, setSelected] = useState("dashboard");
@@ -100,12 +107,15 @@ function App() {
             </Box>
           ))}
         </Flex>
-        <Box mt={8} px={4}>
-    {selected === "dashboard" && <Dashboard />}
-    {selected === "weight" && <WeightTracker />}
-    {selected === "workouts" && <WorkoutLogger />}
-    {selected === "tasks" && <TaskTracker />}
-        </Box>
+         <Box mt={8} px={4}>
+           {selected === "dashboard" && <Dashboard />}
+           {selected === "weight" && <WeightTracker />}
+           {selected === "workouts" && <WorkoutLogger />}
+           {selected === "exercises" && <ExerciseLibrary />}
+           {selected === "templates" && <WorkoutTemplates />}
+           {selected === "analytics" && <PerformanceAnalytics />}
+           {selected === "tasks" && <TaskTracker />}
+         </Box>
       </Box>
     </ErrorBoundary>
   );

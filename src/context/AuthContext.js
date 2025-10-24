@@ -48,7 +48,12 @@ export function AuthProvider({ children }) {
                 await addWeight(w.weight, w.date, w.note);
             }
             for (const wo of workouts) {
-                await addWorkout(wo.type, wo.duration, wo.date, wo.notes);
+                await addWorkout({
+                    type: wo.type,
+                    duration: wo.duration,
+                    date: wo.date,
+                    notes: wo.notes,
+                });
             }
             safeSet('migrationComplete', 'true');
             setMigrated(true);

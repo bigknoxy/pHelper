@@ -12,6 +12,15 @@ const db: Record<string, RecordMap> = {
   workout: {},
   weightEntry: {},
   goal: {},
+  exercise: {},
+  workoutTemplate: {},
+  workoutTemplateExercise: {},
+  workoutExercise: {},
+  personalRecord: {},
+  weightGoal: {},
+  weightMilestone: {},
+  progressPhoto: {},
+  bodyComposition: {},
 }
 let idCounter = 1
 const genId = () => `mock-${idCounter++}`
@@ -38,6 +47,17 @@ const makeModel = (name: string) => ({
     const rec = { id, ...data, createdAt: now.toISOString() }
     db[name][id] = rec
     return rec
+  },
+  createMany: async (params?: { data: Record<string, unknown>[] } | undefined) => {
+    const created = []
+    for (const data of params?.data || []) {
+      const id = typeof (data as Record<string, unknown>).id === 'string' ? (data as Record<string, unknown>).id as string : genId()
+      const now = new Date()
+      const rec = { id, ...data, createdAt: now.toISOString() }
+      db[name][id] = rec
+      created.push(rec)
+    }
+    return { count: created.length }
   },
   findUnique: async (args?: { where?: Record<string, unknown> } | undefined) => {
     if (!args || !args.where) return null
@@ -70,6 +90,20 @@ const makeModel = (name: string) => ({
     // mimic Prisma behaviour by throwing if not found
     throw new Error('Record to delete does not exist')
   },
+  deleteMany: async (args?: { where?: Record<string, unknown> } | undefined) => {
+    const all = Object.values(db[name])
+    const toDelete = args && args.where ? all.filter((r) => matchWhere(r as Record<string, unknown>, args.where)) : all
+    toDelete.forEach((rec) => {
+      const id = (rec as Record<string, unknown>).id as string
+      delete db[name][id]
+    })
+    return { count: toDelete.length }
+  },
+  count: async (args?: { where?: Record<string, unknown> } | undefined) => {
+    const all = Object.values(db[name])
+    const filtered = args && args.where ? all.filter((r) => matchWhere(r as Record<string, unknown>, args.where)) : all
+    return filtered.length
+  },
   update: async (params?: { where?: Record<string, unknown>; data?: Record<string, unknown> } | undefined) => {
     const where = params && params.where ? params.where : {}
     const data = params && params.data ? params.data : {}
@@ -92,6 +126,15 @@ const mockPrisma: Record<string, unknown> = {
   task: makeModel('task'),
   weightEntry: makeModel('weightEntry'),
   goal: makeModel('goal'),
+  exercise: makeModel('exercise'),
+  workoutTemplate: makeModel('workoutTemplate'),
+  workoutTemplateExercise: makeModel('workoutTemplateExercise'),
+  workoutExercise: makeModel('workoutExercise'),
+  personalRecord: makeModel('personalRecord'),
+  weightGoal: makeModel('weightGoal'),
+  weightMilestone: makeModel('weightMilestone'),
+  progressPhoto: makeModel('progressPhoto'),
+  bodyComposition: makeModel('bodyComposition'),
   $connect: async () => {},
   $disconnect: async () => {},
 }

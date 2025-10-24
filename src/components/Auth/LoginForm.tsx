@@ -79,6 +79,7 @@ export default function LoginForm(): React.ReactElement {
   }
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // eslint-disable-next-line no-control-regex
     const sanitized = e.target.value.replace(/[\u0000-\u001F\u007F]/g, '').trim()
     setEmail(sanitized)
     const err = validateEmail(sanitized)

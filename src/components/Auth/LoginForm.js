@@ -66,6 +66,7 @@ export default function LoginForm() {
         return Object.keys(errors).length === 0;
     };
     const handleEmailChange = (e) => {
+        // eslint-disable-next-line no-control-regex
         const sanitized = e.target.value.replace(/[\u0000-\u001F\u007F]/g, '').trim();
         setEmail(sanitized);
         const err = validateEmail(sanitized);

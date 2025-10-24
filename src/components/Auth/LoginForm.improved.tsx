@@ -45,7 +45,7 @@ export default function LoginForm(): React.ReactElement {
   }, [])
 
   // resolve token hex for inline styles that need concrete color strings
-  const [primary500Hex, accent500Hex] = useToken('colors', ['primary.500', 'accent.500'])
+  const [primary500Hex] = useToken('colors', ['primary.500'])
 
   const validateEmail = (value: string): string | null => {
     const v = value.trim()
@@ -77,6 +77,7 @@ export default function LoginForm(): React.ReactElement {
   }
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // eslint-disable-next-line no-control-regex
     const sanitized = e.target.value.replace(/[\u0000-\u001F\u007F]/g, '').trim()
     setEmail(sanitized)
     const err = validateEmail(sanitized)
