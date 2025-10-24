@@ -17,17 +17,28 @@ export function useWorkouts(enabled = true) {
   })
 
   const addWorkoutMutation = useMutation({
-    mutationFn: ({ type, duration, date, notes }: { 
-      type: string; 
-      duration: number; 
-      date: string; 
-      notes?: string 
-    }) => addWorkout(type, duration, date, notes),
+    mutationFn: (workout: {
+      type: string;
+      duration: number;
+      date: string;
+      notes?: string;
+      templateId?: string;
+      exercises?: {
+        exerciseId: string;
+        sets: number;
+        reps?: number;
+        weight?: number;
+        duration?: number;
+        restTime?: number;
+        order: number;
+        notes?: string;
+      }[];
+    }) => addWorkout(workout),
     onSuccess: (newWorkout) => {
       queryClient.setQueryData(['workouts'], (old: WorkoutEntry[] = []) => [...old, newWorkout])
     },
     onError: (err) => {
-      // eslint-disable-next-line no-console
+       
       console.error('addWorkout failed', err)
     },
   })
@@ -41,7 +52,7 @@ export function useWorkouts(enabled = true) {
       queryClient.invalidateQueries({ queryKey: ['workouts'] })
     },
     onError: (err) => {
-      // eslint-disable-next-line no-console
+       
       console.error('deleteWorkout failed', err)
     },
   })

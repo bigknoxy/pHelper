@@ -18,7 +18,21 @@ export function customRender(ui, options) {
         logout: jest.fn(),
         ...authValue,
     };
-    return rtlRender(_jsx(QueryClientWrapper, { children: _jsx(AuthContext.Provider, { value: defaultAuth, children: _jsx(ChakraProvider, { value: theme, children: ui }) }) }));
+    try {
+        return rtlRender(_jsx(QueryClientWrapper, { children: _jsx(AuthContext.Provider, { value: defaultAuth, children: _jsx(ChakraProvider, { value: theme, children: ui }) }) }));
+    }
+    catch (err) {
+        // Log AggregateError inner errors for easier debugging
+        // eslint-disable-next-line no-console
+        console.error('customRender caught error:', err);
+        if (err && err.errors) {
+            // eslint-disable-next-line no-console
+            console.error('AggregateError inner errors:');
+            // eslint-disable-next-line no-console
+            err.errors.forEach((e, i) => console.error(i, e && e.stack ? e.stack : e));
+        }
+        throw err;
+    }
 }
 // Provide a render wrapper so tests can import { render } from this file
 export function render(ui, options) {

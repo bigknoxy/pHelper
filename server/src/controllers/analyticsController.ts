@@ -604,3 +604,490 @@ function calculateTrend(data: { date: Date; value: number }[]) {
   if (Math.abs(change) < 0.01) return 'stable'
   return change > 0 ? 'increasing' : 'decreasing'
 }
+
+// Enhanced workout analytics for Phase 4
+export async function getEnhancedWorkoutAnalytics(req: Request, res: Response) {
+  try {
+    const userId = req.userId as string
+    const { period = '30' } = req.query // days
+
+    const days = parseInt(period as string)
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+
+    // Get workouts in the period using Prisma instead of raw SQL
+    const workoutsInPeriod = await db.workout.findMany({
+      where: {
+        userId,
+        date: {
+          gte: startDate
+        }
+      },
+      select: {
+        date: true,
+        type: true,
+        duration: true
+      }
+    })
+
+    // Calculate workout frequency over time
+    const workoutFrequencyMap = new Map<string, { count: number; total_duration: number }>()
+    workoutsInPeriod.forEach(workout => {
+      const dateKey = workout.date.toISOString().split('T')[0]
+      const existing = workoutFrequencyMap.get(dateKey) || { count: 0, total_duration: 0 }
+      existing.count += 1
+      existing.total_duration += workout.duration
+      workoutFrequencyMap.set(dateKey, existing)
+    })
+
+    const workoutFrequency = Array.from(workoutFrequencyMap.entries())
+      .map(([date, data]) => ({ date, ...data }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+
+    // Get workout types distribution
+    const workoutTypesMap = new Map<string, { count: number; total_duration: number }>()
+    workoutsInPeriod.forEach(workout => {
+      const existing = workoutTypesMap.get(workout.type) || { count: 0, total_duration: 0 }
+      existing.count += 1
+      existing.total_duration += workout.duration
+      workoutTypesMap.set(workout.type, existing)
+    })
+
+    const workoutTypes = Array.from(workoutTypesMap.entries())
+      .map(([type, data]) => ({
+        type,
+        count: data.count,
+        avg_duration: data.total_duration / data.count
+      }))
+      .sort((a, b) => b.count - a.count)
+
+    // Get total stats
+    const totalStats = [{
+      total_workouts: workoutsInPeriod.length,
+      total_duration: workoutsInPeriod.reduce((sum, w) => sum + w.duration, 0),
+      workout_days: workoutFrequency.length,
+      avg_duration: workoutsInPeriod.length > 0
+        ? workoutsInPeriod.reduce((sum, w) => sum + w.duration, 0) / workoutsInPeriod.length
+        : 0
+    }]
+
+    // Get weekly trends (last 12 weeks)
+    const twelveWeeksAgo = new Date(Date.now() - 84 * 24 * 60 * 60 * 1000)
+    const weeklyWorkouts = await db.workout.findMany({
+      where: {
+        userId,
+        date: {
+          gte: twelveWeeksAgo
+        }
+      },
+      select: {
+        date: true,
+        duration: true
+      }
+    })
+
+    // Calculate weekly trends
+    const weeklyStats = new Map<string, { workouts: number; total_duration: number }>()
+    weeklyWorkouts.forEach(workout => {
+      const weekKey = getWeekKey(workout.date)
+      const existing = weeklyStats.get(weekKey) || { workouts: 0, total_duration: 0 }
+      existing.workouts += 1
+      existing.total_duration += workout.duration
+      weeklyStats.set(weekKey, existing)
+    })
+
+    const weeklyTrends = Array.from(weeklyStats.entries())
+      .map(([week, stats]) => ({
+        week,
+        workouts: stats.workouts,
+        total_duration: stats.total_duration,
+        avg_duration: stats.total_duration / stats.workouts
+      }))
+      .sort((a, b) => a.week.localeCompare(b.week))
+
+    res.json({
+      period: days,
+      workoutFrequency,
+      workoutTypes,
+      totalStats: totalStats[0],
+      weeklyTrends,
+      generatedAt: new Date().toISOString()
+    })
+  } catch (error) {
+    console.error('Error fetching enhanced workout analytics:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+// Helper function to get week key for grouping
+function getWeekKey(date: Date): string {
+  const year = date.getFullYear()
+  const month = date.getMonth()
+  const day = date.getDate()
+  const weekStart = new Date(year, month, day - date.getDay())
+  return weekStart.toISOString().split('T')[0]
+}
+
+export async function getExerciseAnalytics(req: Request, res: Response) {
+  try {
+    const userId = req.userId as string
+    const { period = '30' } = req.query // days
+
+    const days = parseInt(period as string)
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+
+    // Get workout exercises in the period using Prisma
+    const workoutExercisesInPeriod = await db.workoutExercise.findMany({
+      where: {
+        workout: {
+          userId,
+          date: {
+            gte: startDate
+          }
+        }
+      },
+      include: {
+        exercise: true,
+        workout: {
+          select: {
+            date: true
+          }
+        }
+      }
+    })
+
+    // Calculate top exercises
+    const exerciseStats = new Map<string, {
+      name: string
+      category: string
+      muscleGroups: string[]
+      total_sets: number
+      total_sets_count: number
+      total_weight: number
+      max_weight: number
+      workout_days: Set<string>
+    }>()
+
+    workoutExercisesInPeriod.forEach(we => {
+      const key = we.exerciseId
+      const existing = exerciseStats.get(key) || {
+        name: we.exercise.name,
+        category: we.exercise.category,
+        muscleGroups: we.exercise.muscleGroups,
+        total_sets: 0,
+        total_sets_count: 0,
+        total_weight: 0,
+        max_weight: 0,
+        workout_days: new Set()
+      }
+
+      existing.total_sets += 1
+      existing.total_sets_count += we.sets || 0
+      if (we.weight) {
+        existing.total_weight += we.weight * (we.sets || 1)
+        existing.max_weight = Math.max(existing.max_weight, we.weight)
+      }
+      existing.workout_days.add(we.workout.date.toISOString().split('T')[0])
+
+      exerciseStats.set(key, existing)
+    })
+
+    const topExercises = Array.from(exerciseStats.values())
+      .map(stats => ({
+        name: stats.name,
+        category: stats.category,
+        muscleGroups: stats.muscleGroups,
+        total_sets: stats.total_sets,
+        total_sets_count: stats.total_sets_count,
+        avg_weight: stats.total_weight / stats.total_sets_count || 0,
+        max_weight: stats.max_weight,
+        workout_days: stats.workout_days.size
+      }))
+      .sort((a, b) => b.total_sets - a.total_sets)
+      .slice(0, 20)
+
+    // Calculate muscle group distribution
+    const muscleGroupStats = new Map<string, { total_sets: number; total_sets_count: number }>()
+    workoutExercisesInPeriod.forEach(we => {
+      we.exercise.muscleGroups.forEach(muscle => {
+        const existing = muscleGroupStats.get(muscle) || { total_sets: 0, total_sets_count: 0 }
+        existing.total_sets += 1
+        existing.total_sets_count += we.sets || 0
+        muscleGroupStats.set(muscle, existing)
+      })
+    })
+
+    const muscleGroups = Array.from(muscleGroupStats.entries())
+      .map(([muscle_group, stats]) => ({ muscle_group, ...stats }))
+      .sort((a, b) => b.total_sets_count - a.total_sets_count)
+
+    // Calculate exercise categories distribution
+    const categoryStats = new Map<string, { total_sets: number; total_sets_count: number }>()
+    workoutExercisesInPeriod.forEach(we => {
+      const existing = categoryStats.get(we.exercise.category) || { total_sets: 0, total_sets_count: 0 }
+      existing.total_sets += 1
+      existing.total_sets_count += we.sets || 0
+      categoryStats.set(we.exercise.category, existing)
+    })
+
+    const categories = Array.from(categoryStats.entries())
+      .map(([category, stats]) => ({ category, ...stats }))
+      .sort((a, b) => b.total_sets_count - a.total_sets_count)
+
+    res.json({
+      period: days,
+      topExercises,
+      muscleGroups,
+      categories,
+      generatedAt: new Date().toISOString()
+    })
+  } catch (error) {
+    console.error('Error fetching exercise analytics:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+export async function getProgressAnalytics(req: Request, res: Response) {
+  try {
+    const userId = req.userId as string
+
+    // Get personal records over time
+    const personalRecords = await db.personalRecord.findMany({
+      where: { userId },
+      include: {
+        exercise: {
+          select: { id: true, name: true, category: true }
+        },
+        workout: {
+          select: { id: true, date: true, type: true }
+        }
+      },
+      orderBy: { date: 'desc' },
+      take: 50
+    })
+
+    // Get recent personal records (last 30 days)
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    const recentPRs = await db.personalRecord.findMany({
+      where: {
+        userId,
+        date: {
+          gte: thirtyDaysAgo
+        }
+      },
+      include: {
+        exercise: {
+          select: { id: true, name: true }
+        }
+      },
+      orderBy: { date: 'desc' }
+    })
+
+    // Get PR statistics by type
+    const prStats = await db.personalRecord.groupBy({
+      by: ['recordType'],
+      where: { userId },
+      _count: {
+        id: true
+      },
+      _max: {
+        value: true,
+        date: true
+      }
+    })
+
+    // Get PR statistics by exercise
+    const exercisePRStats = await db.personalRecord.groupBy({
+      by: ['exerciseId'],
+      where: { userId },
+      _count: {
+        id: true
+      },
+      _max: {
+        value: true,
+        date: true
+      }
+    })
+
+    res.json({
+      personalRecords,
+      recentPRs,
+      prStats,
+      exercisePRStats,
+      totalPRs: personalRecords.length,
+      recentPRCount: recentPRs.length,
+      generatedAt: new Date().toISOString()
+    })
+  } catch (error) {
+    console.error('Error fetching progress analytics:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+export async function getConsistencyAnalytics(req: Request, res: Response) {
+  try {
+    const userId = req.userId as string
+    const { period = '90' } = req.query // days
+
+    const days = parseInt(period as string)
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+
+    // Get workouts in the period using Prisma
+    const workoutsInPeriod = await db.workout.findMany({
+      where: {
+        userId,
+        date: {
+          gte: startDate
+        }
+      },
+      select: {
+        date: true,
+        duration: true
+      }
+    })
+
+    // Calculate daily consistency
+    const dailyStats = new Map<string, { has_workout: boolean; workout_count: number; total_duration: number }>()
+    workoutsInPeriod.forEach(workout => {
+      const dateKey = workout.date.toISOString().split('T')[0]
+      const existing = dailyStats.get(dateKey) || { has_workout: false, workout_count: 0, total_duration: 0 }
+      existing.has_workout = true
+      existing.workout_count += 1
+      existing.total_duration += workout.duration
+      dailyStats.set(dateKey, existing)
+    })
+
+    // Fill in missing days with no workouts
+    const dailyConsistency: any[] = []
+    for (let i = 0; i < days; i++) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      const dateKey = date.toISOString().split('T')[0]
+      const stats = dailyStats.get(dateKey) || { has_workout: false, workout_count: 0, total_duration: 0 }
+      dailyConsistency.push({
+        date: dateKey,
+        has_workout: stats.has_workout,
+        workout_count: stats.workout_count,
+        total_duration: stats.total_duration
+      })
+    }
+    dailyConsistency.reverse() // Oldest first
+
+    // Calculate streaks
+    const currentStreak = await calculateCurrentStreak(userId)
+    const longestStreak = await calculateLongestStreak(userId)
+
+    // Calculate weekly consistency
+    const weeklyStats = new Map<string, { workouts: number; active_days: number; total_duration: number }>()
+    workoutsInPeriod.forEach(workout => {
+      const weekKey = getWeekKey(workout.date)
+      const existing = weeklyStats.get(weekKey) || { workouts: 0, active_days: 0, total_duration: 0 }
+      existing.workouts += 1
+      existing.total_duration += workout.duration
+
+      // Count unique days in the week
+      const dayKey = workout.date.toISOString().split('T')[0]
+      const weekDays = new Set()
+      workoutsInPeriod.forEach(w => {
+        if (getWeekKey(w.date) === weekKey) {
+          weekDays.add(w.date.toISOString().split('T')[0])
+        }
+      })
+      existing.active_days = weekDays.size
+
+      weeklyStats.set(weekKey, existing)
+    })
+
+    const weeklyConsistency = Array.from(weeklyStats.entries())
+      .map(([week, stats]) => ({ week, ...stats }))
+      .sort((a, b) => a.week.localeCompare(b.week))
+
+    res.json({
+      period: days,
+      dailyConsistency,
+      currentStreak,
+      longestStreak,
+      weeklyConsistency,
+      totalDays: days,
+      workoutDays: dailyConsistency.filter(d => d.has_workout).length,
+      consistencyRate: (dailyConsistency.filter(d => d.has_workout).length / days) * 100,
+      generatedAt: new Date().toISOString()
+    })
+  } catch (error) {
+    console.error('Error fetching consistency analytics:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+// Helper functions for enhanced analytics
+async function calculateCurrentStreak(userId: string): Promise<number> {
+  const workouts = await db.workout.findMany({
+    where: { userId },
+    select: { date: true },
+    orderBy: { date: 'desc' }
+  })
+
+  if (workouts.length === 0) return 0
+
+  let streak = 0
+  const currentDate = new Date()
+
+  // Check if today has a workout
+  const today = new Date().toDateString()
+  const todayWorkout = workouts.find(w => w.date.toDateString() === today)
+
+  if (todayWorkout) {
+    streak = 1
+    currentDate.setDate(currentDate.getDate() - 1)
+  }
+
+  // Count consecutive days backwards
+  for (let i = 0; i < workouts.length; i++) {
+    const workoutDate = workouts[i].date.toDateString()
+    const expectedDate = currentDate.toDateString()
+
+    if (workoutDate === expectedDate) {
+      streak++
+      currentDate.setDate(currentDate.getDate() - 1)
+    } else {
+      break
+    }
+  }
+
+  return streak
+}
+
+async function calculateLongestStreak(userId: string): Promise<number> {
+  const workouts = await db.workout.findMany({
+    where: { userId },
+    select: { date: true },
+    orderBy: { date: 'asc' }
+  })
+
+  if (workouts.length === 0) return 0
+
+  let longestStreak = 1
+  let currentStreak = 1
+
+  for (let i = 1; i < workouts.length; i++) {
+    const prevDate = new Date(workouts[i - 1].date)
+    const currentDate = new Date(workouts[i].date)
+
+    // Calculate days difference
+    const diffTime = Math.abs(currentDate.getTime() - prevDate.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays === 1) {
+      currentStreak++
+      longestStreak = Math.max(longestStreak, currentStreak)
+    } else {
+      currentStreak = 1
+    }
+  }
+
+  return longestStreak
+}

@@ -6,6 +6,9 @@ import WeightTracker from './components/WeightTracker';
 import WorkoutLogger from './components/WorkoutLogger';
 import TaskTracker from './components/TaskTracker';
 import Dashboard from './components/Dashboard';
+import ExerciseLibrary from './components/ExerciseLibrary';
+import WorkoutTemplates from './components/WorkoutTemplates';
+import PerformanceAnalytics from './components/PerformanceAnalytics';
 import TopBarAuth from './components/TopBarAuth';
 import LoginForm from './components/Auth/LoginForm';
 import RegisterForm from './components/Auth/RegisterForm';
@@ -17,6 +20,9 @@ function App() {
         { label: "Dashboard", value: "dashboard" },
         { label: "Weight", value: "weight" },
         { label: "Workouts", value: "workouts" },
+        { label: "Exercises", value: "exercises" },
+        { label: "Templates", value: "templates" },
+        { label: "Analytics", value: "analytics" },
         { label: "Tasks", value: "tasks" },
     ];
     const [selected, setSelected] = useState("dashboard");
@@ -49,6 +55,6 @@ function App() {
                                 e.preventDefault();
                                 setSelected(tab.value);
                             }
-                        }, "aria-pressed": selected === tab.value, children: tab.label }, tab.value))) }), _jsxs(Box, { mt: 8, px: 4, children: [selected === "dashboard" && _jsx(Dashboard, {}), selected === "weight" && _jsx(WeightTracker, {}), selected === "workouts" && _jsx(WorkoutLogger, {}), selected === "tasks" && _jsx(TaskTracker, {})] })] }) }));
+                        }, "aria-pressed": selected === tab.value, children: tab.label }, tab.value))) }), _jsxs(Box, { mt: 8, px: 4, children: [selected === "dashboard" && _jsx(Dashboard, {}), selected === "weight" && _jsx(WeightTracker, {}), selected === "workouts" && _jsx(WorkoutLogger, {}), selected === "exercises" && _jsx(ExerciseLibrary, {}), selected === "templates" && _jsx(WorkoutTemplates, {}), selected === "analytics" && _jsx(PerformanceAnalytics, {}), selected === "tasks" && _jsx(TaskTracker, {})] })] }) }));
 }
 export default App;

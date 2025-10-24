@@ -20,13 +20,26 @@ export function customRender(ui: React.ReactElement, options?: { authValue?: Par
     ...authValue,
   }
 
-  return rtlRender(
-    <QueryClientWrapper>
-      <AuthContext.Provider value={defaultAuth}>
-        <ChakraProvider value={theme}>{ui}</ChakraProvider>
-      </AuthContext.Provider>
-    </QueryClientWrapper>
-  )
+  try {
+    return rtlRender(
+      <QueryClientWrapper>
+        <AuthContext.Provider value={defaultAuth}>
+          <ChakraProvider value={theme}>{ui}</ChakraProvider>
+        </AuthContext.Provider>
+      </QueryClientWrapper>
+    )
+  } catch (err: any) {
+    // Log AggregateError inner errors for easier debugging
+    // eslint-disable-next-line no-console
+    console.error('customRender caught error:', err)
+    if (err && err.errors) {
+      // eslint-disable-next-line no-console
+      console.error('AggregateError inner errors:')
+      // eslint-disable-next-line no-console
+      err.errors.forEach((e: any, i: number) => console.error(i, e && e.stack ? e.stack : e))
+    }
+    throw err
+  }
 }
 
 // Provide a render wrapper so tests can import { render } from this file

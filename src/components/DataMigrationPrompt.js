@@ -54,7 +54,7 @@ export default function DataMigrationPrompt() {
             }
             else {
                 seen.add(key);
-                await addWorkout(wo.type, wo.duration, wo.date, wo.notes);
+                await addWorkout({ type: wo.type, duration: wo.duration, date: wo.date, notes: wo.notes });
             }
         }
         setConflicts(foundConflicts);

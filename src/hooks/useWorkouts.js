@@ -10,12 +10,11 @@ export function useWorkouts(enabled = true) {
         enabled,
     });
     const addWorkoutMutation = useMutation({
-        mutationFn: ({ type, duration, date, notes }) => addWorkout(type, duration, date, notes),
+        mutationFn: (workout) => addWorkout(workout),
         onSuccess: (newWorkout) => {
             queryClient.setQueryData(['workouts'], (old = []) => [...old, newWorkout]);
         },
         onError: (err) => {
-            // eslint-disable-next-line no-console
             console.error('addWorkout failed', err);
         },
     });
@@ -28,7 +27,6 @@ export function useWorkouts(enabled = true) {
             queryClient.invalidateQueries({ queryKey: ['workouts'] });
         },
         onError: (err) => {
-            // eslint-disable-next-line no-console
             console.error('deleteWorkout failed', err);
         },
     });

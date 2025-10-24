@@ -31,7 +31,7 @@ export default function LoginForm() {
         emailRef.current?.focus();
     }, []);
     // resolve token hex for inline styles that need concrete color strings
-    const [primary500Hex, accent500Hex] = useToken('colors', ['primary.500', 'accent.500']);
+    const [primary500Hex] = useToken('colors', ['primary.500']);
     const validateEmail = (value) => {
         const v = value.trim();
         if (!v)
@@ -66,6 +66,7 @@ export default function LoginForm() {
         return Object.keys(errors).length === 0;
     };
     const handleEmailChange = (e) => {
+        // eslint-disable-next-line no-control-regex
         const sanitized = e.target.value.replace(/[\u0000-\u001F\u007F]/g, '').trim();
         setEmail(sanitized);
         const err = validateEmail(sanitized);

@@ -45,7 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const t = tokenGet()
       if (t) {
         setTokenState(t)
-        setUserId('me')
+        // Extract userId from JWT token
+        try {
+          const payload = JSON.parse(atob(t.split('.')[1]))
+          setUserId(payload.userId || 'me')
+        } catch {
+          setUserId('me')
+        }
       }
     } catch {
       // ignore
@@ -65,7 +71,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await addWeight(w.weight, w.date, w.note)
       }
       for (const wo of workouts) {
-        await addWorkout(wo.type, wo.duration, wo.date, wo.notes)
+        await addWorkout({
+          type: wo.type,
+          duration: wo.duration,
+          date: wo.date,
+          notes: wo.notes,
+        })
       }
       safeSet('migrationComplete', 'true')
       setMigrated(true)
@@ -85,7 +96,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const jwt = ((res as { token?: string })?.token) ?? null
       tokenSet(jwt, remember)
       setTokenState(jwt)
-      setUserId('me')
+
+      // Extract userId from JWT token
+      if (jwt) {
+        try {
+          const payload = JSON.parse(atob(jwt.split('.')[1]))
+          setUserId(payload.userId)
+        } catch {
+          setUserId('me')
+        }
+      }
+
       // Only redirect if remember=true to avoid losing in-memory token on page reload
       // When remember=false, let React state update naturally
       try {
@@ -121,7 +142,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const jwt = ((res as { token?: string })?.token) ?? null
       tokenSet(jwt, remember)
       setTokenState(jwt)
-      setUserId('me')
+
+      // Extract userId from JWT token
+      if (jwt) {
+        try {
+          const payload = JSON.parse(atob(jwt.split('.')[1]))
+          setUserId(payload.userId)
+        } catch {
+          setUserId('me')
+        }
+      }
+
       // Only redirect if remember=true to avoid losing in-memory token on page reload
       // When remember=false, let React state update naturally
       try {

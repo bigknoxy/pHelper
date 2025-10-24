@@ -23,7 +23,7 @@ export function useTasks(enabled = true) {
       queryClient.setQueryData(['tasks'], (old: Task[] = []) => [newTask, ...old])
     },
     onError: (err) => {
-      // eslint-disable-next-line no-console
+       
       console.error('addTask failed', err)
     },
   })
@@ -34,7 +34,7 @@ export function useTasks(enabled = true) {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
     },
     onError: (err) => {
-      // eslint-disable-next-line no-console
+       
       console.error('deleteTask failed', err)
     },
   })
@@ -45,7 +45,7 @@ export function useTasks(enabled = true) {
       queryClient.invalidateQueries({ queryKey: ['tasks'] })
     },
     onError: (err) => {
-      // eslint-disable-next-line no-console
+       
       console.error('toggleTask failed', err)
     },
   })

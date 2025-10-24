@@ -24,7 +24,7 @@ export function useWeights(enabled = true) {
     },
     onError: (err) => {
       // central place to log/report mutation errors
-      // eslint-disable-next-line no-console
+       
       console.error('addWeight failed', err)
     },
   })
@@ -38,7 +38,7 @@ export function useWeights(enabled = true) {
       queryClient.invalidateQueries({ queryKey: ['weights'] })
     },
     onError: (err) => {
-      // eslint-disable-next-line no-console
+       
       console.error('deleteWeight failed', err)
     },
   })
