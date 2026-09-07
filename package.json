@@ -52,7 +52,7 @@
     "ts-jest": "^29.4.1",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.39.1",
-    "vite": "^7.1.2",
+    "vite": "^7.3.6",
     "wait-on": "^7.0.1"
   },
   "description": "A personal health and productivity tracker with tabbed navigation for weight, workouts, and tasks. Offline-first, mobile-friendly, and privacy-focused.",
